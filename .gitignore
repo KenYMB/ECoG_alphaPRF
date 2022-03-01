@@ -1,0 +1,7 @@
+*.m~
+*.sh~
+*.asv
+Data/
+Figures/
+.DS_Store
+.sync/
