@@ -23,7 +23,7 @@ function    [modelts, datats, cod] = ecog_computePRFtimeseries(stimulus,data,par
 % - datats          = CH x X x K cell-matrix of data time series.
 % - cod             = CH x K x L matrix of coefficient of determination (R^2)
 % 
-% See also: reconPRFdog
+% See also: reconPRFdog(ecog_utils)
 
 % Dependency: <analyzePRF>, SetDefault
 

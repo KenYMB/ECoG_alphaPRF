@@ -14,10 +14,10 @@ function [data] = ecog_prf_regressData(data, opts)
 %   - fsample
 % - opts
 %   - baseline_time
+%   - epoch_time    = reference period to apply regression
 %   - allowlag      = true or false(default), if allow lag in regression
-%   - maxlag        = maximum lags (default = 0.01s, valid if allowlag is true)
-%   - reference_time = reference period to apply regression (default: all time)
-%   - lag_maxabs    = true or false(default), if estimate time lag with maxabs or max
+%    - maxlag        = maximum lags (default = 0.01s, valid if allowlag is true)
+%    - lag_maxabs    = true or false(default), if estimate time lag with maxabs or max
 %   - issave
 %   - outputDir
 %   - doplots
@@ -55,16 +55,16 @@ function [data] = ecog_prf_regressData(data, opts)
 %% Set options
 %--Define inputs 
 % <opts>
+SetDefaultAnalysisPath('DATA','Preprocessed','opts.outputDir');
+SetDefaultAnalysisPath('FIGURE','regression','opts.plotsavedir');
 SetDefault('opts.baseline_time',[-0.2 0]);
+SetDefault('opts.epoch_time',[-0.2 0.8]);
 SetDefault('opts.allowlag',false);
 SetDefault('opts.maxlag',0.01);
-SetDefault('opts.reference_time',[]);
 SetDefault('opts.lag_maxabs',false);
 SetDefault('opts.issave',false);
-SetDefault('opts.outputDir',fullfile(analysisRootPath, 'Data', 'Preprocessed'));
 SetDefault('opts.doplots',false);
-SetDefault('opts.plotsavedir',fullfile(analysisRootPath, 'Figures', 'regression'));
-SetDefault('opts.plot.XLim',[-0.2 0.8]);
+SetDefault('opts.plot.XLim',opts.epoch_time);
 SetDefault('opts.plot.fontSize',16);
 % <hidden opts>
 SetDefault('opts.compute',[]);
@@ -86,9 +86,9 @@ else
     SetDefault('opts.skipexist',false);
 end
 if opts.issave && ~exist(opts.outputDir, 'dir'),     mkdir(opts.outputDir); end
-if opts.doplots && ~exist(opts.plotsavedir, 'dir'), mkdir(opts.plotsavedir); end
+if opts.doplots && ~exist(opts.plotsavedir, 'dir'),  mkdir(opts.plotsavedir); end
 
-%-- Correct Subject Information
+%-- Collect Subject Information
 subjectList_fname = 'subjectlist.tsv';
 SbjInfo    = loadSbjInfo(subjectList_fname,'all');
 hasSbjInfo = ~isempty(SbjInfo) && istablefield(SbjInfo,'participant_id');
@@ -153,10 +153,10 @@ for ii = 1 : length(data)
     if compute
         %-- regress parameters
         maxlagpts   = round(maxlag * fsample);
-        if isempty(opts.reference_time)
+        if isempty(opts.epoch_time)
             t_ref   = [];
         else
-            t_ref   = trials.time >= opts.reference_time(1) & trials.time < opts.reference_time(2);
+            t_ref   = trials.time >= opts.epoch_time(1) & trials.time < opts.epoch_time(2);
         end
         negregress  = opts.lag_maxabs;
         

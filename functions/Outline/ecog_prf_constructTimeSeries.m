@@ -70,18 +70,16 @@ function [modeldata] = ecog_prf_constructTimeSeries(params, opts)
 %% Set options
 %--Define inputs 
 % <opts>
+SetDefaultAnalysisPath('DATA','pRFmodel','opts.outputDir');
 SetDefault('opts.issave',false);
-SetDefault('opts.outputDir',fullfile(analysisRootPath, 'Data', 'pRFmodel'));
-SetDefault('opts.stimulus.apertures',which('bar_apertures.mat'));
-SetDefault('opts.stimulus.apertures',fullfile(analysisRootPath, 'Data','stimuli','bar_apertures.mat'));
+SetDefault('opts.stimulus.apertures','bar_apertures.mat');
 SetDefault('opts.stimulus.res',[100 100]);
 SetDefault('opts.stimulus.size',16.6);
-SetDefault('opts.targetBAND','');
+SetDefault('opts.targetBAND',{},'cell');
 SetDefault('opts.smoothingMode','decimate');    % 'none','smooth','decimate'(default)
 SetDefault('opts.smoothingN',3);                % integar: width of smoothing window (default = 3)
     SetDefault('opts.doplots',false);
     SetDefault('opts.doplots_alpha',false);
-    SetDefault('opts.plotsavedir',fullfile(analysisRootPath, 'Figures', 'pRF'));
     SetDefault('opts.plot.XLim',[1 100]);
     SetDefault('opts.plot.XScale','linear');
     SetDefault('opts.plot.fontSize',16);
@@ -96,15 +94,10 @@ SetDefault('opts.maxlag',nan);                          % just for saving and lo
 %-- check inputs and outputs
 assert(~isempty(params), 'Please provide spectra parameters');
 assert(~isempty(opts.targetBAND), 'opts.targetBAND is required');
-if iscell(opts.targetBAND) && length(opts.targetBAND)~=1
-    assert(numel(opts.targetBAND)==numel(params),...
-        'opts.targetBAND is a charactor-array or cell-array of the same length as the 1st argument');
-else
-    if ~iscell(opts.targetBAND), opts.targetBAND = {opts.targetBAND}; end
-    opts.targetBAND = repmat(opts.targetBAND,numel(params),1);
-end
 if all(strcmpi(opts.targetBAND,'ERP'))||all(strcmpi(opts.targetBAND,'ERPlag'))
-    warning('targetBAND is specified as ''EPR''\nCalling %s...','ecog_prf_constructTimeSeriesERP');
+    opts.targetBAND = opts.targetBAND{1};
+    warning('targetBAND is specified as ''%s''\nCalling %s...',...
+                opts.targetBAND,'ecog_prf_constructTimeSeriesERP');
     modeldata = ecog_prf_constructTimeSeriesERP(params, opts);
     return;
 end
@@ -117,7 +110,6 @@ else
     SetDefault('opts.skipexist',false);
 end
 if opts.issave && ~exist(opts.outputDir, 'dir'),     mkdir(opts.outputDir); end
-if (opts.doplots||opts.doplots_alpha) && ~exist(opts.plotsavedir, 'dir'), mkdir(opts.plotsavedir); end
     
 %% load stimulus set of pRF experiment
 if opts.compute
@@ -162,7 +154,7 @@ for ii = 1 : numel(params)
         maxlag       = iparams.maxlag;
         average      = iparams.average;
     end
-    targetBAND = fixBANDname(opts.targetBAND{ii},allowlag);
+    targetBAND      = getBANDname(opts.targetBAND,allowlag,ii,numel(params));
     smoothingMode   = opts.smoothingMode;
     smoothingN      = opts.smoothingN;
     if smoothingN == 1,  smoothingMode = 'none';    end
@@ -332,7 +324,14 @@ issmooth     = ~ismember(smoothingMode,{'none'});
 if issmooth,       postfix = sprintf('%s-%s%d',postfix,smoothingMode,smoothingN);  end
 end
 
-function targetBAND = fixBANDname(targetBAND,allowlag)
+function targetBAND = getBANDname(targetBANDs,allowlag,idx,nidx)
+if length(targetBANDs)==1
+    targetBAND = targetBANDs{1};
+elseif length(targetBANDs)==nidx
+    targetBAND = targetBANDs{idx};
+else
+    error('%s must be a charactor-array or cell-array of the same length as the 1st argument','opts.targetBAND');
+end
 if allowlag && ~endsWith(targetBAND,'lag')
     targetBAND = [targetBAND 'lag'];
 end

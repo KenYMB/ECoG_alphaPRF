@@ -5,14 +5,25 @@
 %% Initialize
 close all;
 
-SetDefaultAnalysisPath;
-plotsavepth    = fullfile(figPth, 'Publication');
+run_checkPath;
+plotsavePthP   = SetDefaultAnalysisPath('FIG','Publication');
 issaveplot     = false;
 
 %% Figure
-plotsavedir    = fullfile(plotsavepth, 'Figure2');
+plotsavedir    = fullfile(plotsavePthP, 'Figure2');
 if ~exist(plotsavedir,'dir'), mkdir(plotsavedir); end
 
-ecog_APRF_10c_outputSpectrumPanel;
+%-- Spectra
+ecog_APRFF_10b_outputSpectrumBar;
 
-savefigauto(hF,fullfile(plotsavedir,'Figure2a'));
+savefigauto(hF,fullfile(plotsavedir,'Figure2cd'),'-vector');
+
+%-- Surface
+selsbj      = 2;
+plotelecrad = 2;
+ecog_APRFF_10a_plotSurface;
+view(hF(1).Children(end),[-45 0]);
+clear selsbj plotelecrad
+
+savefigauto(hF,fullfile(plotsavedir,'Figure2b'),'Renderer','auto');
+

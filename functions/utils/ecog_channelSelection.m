@@ -17,6 +17,7 @@ function [data] = ecog_channelSelection(data,channelType,exclude_FEF,threshold)
 %       'bensonchs'     : channels assinged to benson atlas
 %       'wangchs'       : channels assinged to wang atlas
 %       'wangprobchs'   : channels with total probability over threshold in wang atlas
+%       'HDgridchs'     : channels which group are marked as 'HDgrid'
 %       'GB*'           : channels with names starts with 'GB'
 % - exclude_FEF = true (default) or false
 %                 if true, output does not include channels where
@@ -94,10 +95,17 @@ for itype = 1:length(channelType)
             selectchs = selectchs | wangprobchs;
         case 'hcpprobchs'
             selectchs = selectchs | hcpprobchs;
-        otherwise   % specify channel names with wildcard or error
+        otherwise
+          if endsWith(channelType{itype},'chs')
+            %-- search channels.group
+            pattern = strrep(channelType{itype},'chs','');
+            selectchs = selectchs | ismember(channels.group,pattern);
+          else
+            %-- specify channel names with wildcard or error
             assert(contains(channelType{itype},'*'),'Unknown channelType')
             pattern = ['^' regexptranslate('wildcard', channelType{itype}) '$'];
             selectchs = selectchs | ~cellfun(@isempty,regexp(channels.name,pattern,'once'));
+          end
     end
 end
 

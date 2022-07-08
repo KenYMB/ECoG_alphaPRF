@@ -70,10 +70,10 @@ hasfreq   = ~isempty(freq);
 %% Set options
 %--Define inputs 
 % <opts>
+SetDefaultAnalysisPath('DATA','xSpectrum','opts.outputDir');
 SetDefault('opts.average','stimuli');
 SetDefault('opts.isavgfreq',false);
 SetDefault('opts.issave',false);
-SetDefault('opts.outputDir',fullfile(analysisRootPath, 'Data', 'xSpectrum'));
 % <method>
 SetDefault('opts.method','coh');
 % <hidden opts>

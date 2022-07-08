@@ -54,6 +54,7 @@ function odata = decimate_col(idata,r,nfilt,option,dim,nanflag)
 
 % 20200203 Yuasa: modified from DECIMATE to apply matrix
 % 20201214 Yuasa: ignore nan option
+% 20220629 Yuasa: avoid error if data includes nan columns
 
 narginchk(2,6);
 error(nargoutchk(0,1,nargout,'struct'));
@@ -195,6 +196,8 @@ datsiz = size(idata);
 nd = datsiz(1);
 nout = ceil(nd/r);
 idata = reshape(idata,nd,[]);
+nancol = all(isnan(idata),1);
+idata(:,nancol) = 0;
 
 if fopt == 0	% FIR filter
     b = fir1(nfilt,1/r);
@@ -236,6 +239,7 @@ else	% IIR filter
     nbeg = r - (r*nout - nd);
     odata = odata(nbeg:r:nd,:);
 end
+odata(:,nancol) = nan;
 odata = permute(reshape(odata,[size(odata,1),datsiz(2:end)]),[2:dim,1,(dim+1):fulldim]);
 
 %--------------------------------------------------------------------------

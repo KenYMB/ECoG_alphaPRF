@@ -57,7 +57,7 @@ function [params] = ecog_prf_fitalpha(freq, opts)
 
 % Hidden usage
 % - opts.compute    = false;        % load or bypass data
-%   - opts.allowlag = false;
+% - opts.allowlag   = false;
 % 
 % - opts.bootstrap  = number (p) > 0: apply bootstrapping with p iterations
 %                     0(default)    : not apply bootstrapping
@@ -83,16 +83,15 @@ function [params] = ecog_prf_fitalpha(freq, opts)
 %% Set options
 %--Define inputs 
 % <opts>
+SetDefaultAnalysisPath('DATA','Spectrum','opts.outputDir');
 SetDefault('opts.average','runs');
 SetDefault('opts.issave',false);
-SetDefault('opts.outputDir',fullfile(analysisRootPath, 'Data', 'Spectrum'));
 SetDefault('opts.gammafit',false);
 SetDefault('opts.estimateIAF',true);
 SetDefault('opts.allownegfit',true);
 SetDefault('opts.allowbetafit',false);
 SetDefault('opts.allowwidefit',false);
-SetDefault('opts.stimulus.apertures',which('bar_apertures.mat'));
-SetDefault('opts.stimulus.apertures',fullfile(analysisRootPath, 'Data','stimuli','bar_apertures.mat'));
+SetDefault('opts.stimulus.apertures','bar_apertures.mat');
 SetDefault('opts.stimulus.res',[100 100]);
 SetDefault('opts.stimulus.size',16.6);
 % <hidden opts>
@@ -116,7 +115,7 @@ else
 end
 if opts.issave && ~exist(opts.outputDir, 'dir'),     mkdir(opts.outputDir); end
 
-%-- Correct Subject Information
+%-- Collect Subject Information
 subjectList_fname = 'subjectlist.tsv';
 SbjInfo    = loadSbjInfo(subjectList_fname,'all');
 hasSbjInfo = ~isempty(SbjInfo) && istablefield(SbjInfo,'participant_id');
@@ -131,6 +130,7 @@ if opts.compute && opts.estimateIAF
       apertures = load(opts.stimulus.apertures);
       tmp = fieldnames(apertures);
       apertures = apertures.(tmp{1});
+      clear tmp;
   else
       apertures = opts.stimulus.apertures;
   end
@@ -176,13 +176,13 @@ for ii = 1 : length(freq)
     end
     average      = opts.average;
     gammafit     = opts.gammafit;
-    allownegfit  = opts.allownegfit;
-    allowbetafit = opts.allowbetafit;
-    allowwidefit = opts.allowwidefit;
+    allownegfit  = getparam(opts,'allownegfit',ii,length(freq));
+    allowbetafit = getparam(opts,'allowbetafit',ii,length(freq));
+    allowwidefit = getparam(opts,'allowwidefit',ii,length(freq));
     estimateIAF  = opts.estimateIAF;
     %-- Try to load files
+    postfix = cnstpostfix(opts.fileid,allowlag,average,estimateIAF,allownegfit,gammafit,allowbetafit,allowwidefit);
     if isloadfile
-        postfix = cnstpostfix(opts.fileid,allowlag,average,estimateIAF,allownegfit,gammafit,allowbetafit,allowwidefit);
         filename    = fullfile(opts.outputDir, sprintf('%s_%s%s.mat', subject,opts.fileid,postfix));
         %-- load files from directory
         if exist(filename,'file') || ~compute
@@ -218,7 +218,7 @@ for ii = 1 : length(freq)
             otherwise,          error('''%s'' is unknown average type',average);
         end
         n_avg     = groupcounts(avg_group);
-        if ~all(diff(n_avg)==0),    warning('[%s] %s do not consist with the same time series',mfilename,average);  end
+        if ~all(diff(n_avg)==0),    warning('[%s] the length of %s are not the same',mfilename,average);  end
         
         %-- change dims & take average across repeats (chan x events x f -> f x averaged events x channels)
         data_spctr      = zeros(length(f),length(n_avg),height(channels));
@@ -235,15 +235,6 @@ for ii = 1 : length(freq)
         events      = events(events_idx,:);
         if isboot,  n_iter = opts.bootstrap;
         else,       n_iter = 1;
-        end
-        
-        %-- Temporal file (back up)
-        postfix = cnstpostfix(opts.fileid,allowlag,average,estimateIAF,allownegfit,gammafit,allowbetafit,allowwidefit);
-        dd = 0; fileconflict = true;
-        while (fileconflict)
-            dd= dd+1;
-            filename0      = fullfile(opts.outputDir, sprintf('%s_%s%s_temp%d.mat', subject,opts.fileid,postfix,dd));
-            fileconflict  = exist(filename0,'file');
         end
         
         %-- Recording site
@@ -263,8 +254,20 @@ for ii = 1 : length(freq)
         end
         
         %%% loop across electrodes
-        resamp_parms  = repmat({NaN(n_stims,n_params,n_iter)},height(channels),1);
-        for iter = 1:n_iter
+        %-- Temporal file (back up)
+        filename_tmp  = fullfile(opts.outputDir, sprintf('%s_%s%s_temp.mat', subject,opts.fileid,postfix));
+        if exist(filename_tmp,'file')
+            fprintf('[%s] Temporary file is found. Loading %s\n',mfilename,filename_tmp);
+            tmp = load(filename_tmp);
+            resamp_parms = tmp.resamp_parms;
+            iter         = tmp.iter + 1;
+            clear tmp;
+            fprintf('[%s] Continue from %s loop\n',mfilename,iptnum2ordinal(iter));
+        else
+            resamp_parms = repmat({NaN(n_stims,n_params,n_iter)},height(channels),1);
+            iter         = 1;
+        end
+        for iter = iter:n_iter
           if isboot
             %-- recompute data_spctr
             parfor iavg = 1:length(n_avg)
@@ -331,18 +334,18 @@ for ii = 1 : length(freq)
                     bensonPRF = nan(1,3);
                 end
                 if any(isnan(bensonPRF))
-                    taskIndex = ~ismember(events.trial_name,'BLANK');
+                    modelts = nan;
                 else
                     %%-- convert benson pRF into CSS parameters with expt=0.05
                     bensonCSS = PRF2CSS(bensonPRF,resmx,1,0.05);
 
                     stimulusPPR = stimulusPP(events.stim_file_index,:);
                     modelts = modelfun(bensonCSS,stimulusPPR);
-                    if var(modelts)==0  % flat signal because of large eccentricity
-                        taskIndex = ~ismember(events.trial_name,'BLANK');
-                    else
-                        taskIndex = modelts > prctile(modelts,85);
-                    end
+                end
+                if all(isnan(modelts)) || var(modelts,'omitnan')==0  % flat signal because of large eccentricity
+                    taskIndex = ~ismember(events.trial_name,'BLANK');
+                else
+                    taskIndex = modelts > prctile(modelts,85);
                 end
 
                 %-- fit alpha with selected trials to estimate peak alpha frequency
@@ -402,7 +405,7 @@ for ii = 1 : length(freq)
           end
           %-- Temporal file (back up)
           if ~mod(iter,10)
-            saveauto(filename0,'iter','resamp_parms');
+            saveauto(filename_tmp,'iter','resamp_parms');
           end
         end
     else
@@ -449,8 +452,8 @@ for ii = 1 : length(freq)
     end
     
     %-- Temporal file (back up)
-    if exist('filename0','var') && exist(filename0,'file')
-        delete(filename0);
+    if exist('filename_tmp','var') && exist(filename_tmp,'file')
+        delete(filename_tmp);
     end
     
 end
@@ -477,3 +480,12 @@ fitparams    = regexprep(fitparams,'^-*','');
 postfix      = sprintf('%s_%s_avg-%s',postfix,fitparams,average);
 end
 
+function param = getparam(opt,paramname,idx,nidx)
+
+param = opt.(paramname);
+if length(param)==nidx
+    param = param(idx);
+elseif length(param)~=1
+    error('%s.%s must be a boolean or have the same length to the 1st argument',inputname(1),paramname);
+end
+end

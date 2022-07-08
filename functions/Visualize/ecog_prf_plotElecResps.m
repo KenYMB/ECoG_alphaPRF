@@ -54,7 +54,7 @@ if  ~exist(opts.plotsavedir, 'dir'), mkdir(opts.plotsavedir); end
 dotwoside = exist('modeldata2','var');
 flglgnd   = isfield(opts.plot,'legend');
 
-%-- Correct Subject Information
+%-- Collect Subject Information
 subjectList_fname = 'subjectlist.tsv';
 SbjInfo    = loadSbjInfo(subjectList_fname,'all');
 hasSbjInfo = ~isempty(SbjInfo) && istablefield(SbjInfo,'participant_id');

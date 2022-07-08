@@ -1,5 +1,5 @@
-function [th_bb,th_a,th_erp] = ecog_prf_getthreshold(savePth,R2mode,selectchs,postfix,alpha_cod)
-% [th_bb,th_a,th_erp] = ECOG_PRF_GETTHRESHOLD(savePth,R2mode,selectchs,postfix,alpha_cod)
+function [th_bb,th_a,th_erp] = ecog_prf_getthreshold(prfstatPth,R2mode,selectchs,postfix,alpha_cod)
+% [th_bb,th_a,th_erp] = ECOG_PRF_GETTHRESHOLD(prfstatPth,R2mode,selectchs,postfix,alpha_cod)
 %    loads permutation data and get threshold at alpha_cod
 % 
 % Outputs:
@@ -9,7 +9,7 @@ function [th_bb,th_a,th_erp] = ecog_prf_getthreshold(savePth,R2mode,selectchs,po
 % 
 % Inputs:
 %   [fine name related]
-%   savePth         = Directory where mat files are saved 
+%   prfstatPth      = Directory where mat files are saved 
 %   R2mode          = 
 %   selectchs       = 
 %   postfix         = 
@@ -19,17 +19,20 @@ function [th_bb,th_a,th_erp] = ecog_prf_getthreshold(savePth,R2mode,selectchs,po
 
 % 20211124 Yuasa
 
+% Dependency: SetDefault (ky_utils)
+
 %% Load permutation data and get threshold
 %-- Set default value of alpha_cod
-if ~exist('alpha_cod','var')||isempty(alpha_cod)
-    alpha_cod = 0.95;
-end
+SetDefault('alpha_cod',0.95);
+
+%-- Get 1st value if selectchs is cell
+if iscell(selectchs),   selectchs = selectchs{1};   end
 
 %-- Default path of all_codperm data
-fileDir = fullfile(savePth,'pRFanalysis');
+SetDefaultAnalysisPath('DATA','pRFanalysis','prfstatPth');
 %-- broadband & alpha
 filename = sprintf('all_cod-permhalves%s-%s%s.mat',R2mode,selectchs,postfix);
-filepath = fullfile(fileDir,filename);
+filepath = fullfile(prfstatPth,filename);
 if exist(filepath,'file')
     load(filepath,'cod_bb','cod_a');
     th_bb = round(prctile(cod_bb(:),alpha_cod*100));
@@ -40,7 +43,7 @@ else
 end
 %-- erp
 filename = sprintf('all_cod-permhalves%s-%s%s-%s',R2mode,selectchs,postfix,'ERP');
-filepath = fullfile(fileDir,filename);
+filepath = fullfile(prfstatPth,filename);
 if exist(filepath,'file')
     load(filepath,'cod_erp');
     th_erp = round(prctile(cod_erp(:),alpha_cod*100));

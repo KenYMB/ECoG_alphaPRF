@@ -7,6 +7,8 @@ function    sbjectInfo = loadSbjInfo(filename,opt)
 % 
 % sbjectInfo = LOADSBJINFO(filename,'all')
 %   loads subject information from 'name*.ext' files.
+% 
+% See also, SetSubjectsList
 
 % 20220222 Yuasa
 

@@ -5,25 +5,26 @@
 % 20220223 Yuasa
 
 %% Initialize
-run_tbUse;
-clearvars -except analysisRootPath
+run_checkPath;
+clearvars;
 if exist('gcp','file') && isempty(gcp('nocreate')), parpool;  end
 
-%% Set test dataset
-%-- Input path
-dataPth     = fullfile(bidsRootPath,'derivatives',filesep);
-%-- Output path 
-savePth     = fullfile(analysisRootPath,'Data',filesep);
-figPth      = fullfile(analysisRootPath, 'Figures',filesep);
+%% Set dataset
+% %-- Input path
+% bidsPth     = fullfile(bidsRootPath,'derivatives',filesep);
+% %-- Output path 
+% datPth      = fullfile(analysisRootPath,'Data',filesep);
+% figPth      = fullfile(analysisRootPath, 'Figures',filesep);
+
 %-- Subject list
-subjectList_fname = 'subjectlistTEST.tsv';
+subjectList_fname = 'subjectlist.tsv';
 
 %% Compute power spectral density
-ecog_APRF_01a_preprocessing
+ecog_APRFF_01a_preprocessing
 
 %% pRF analysis
-ecog_APRF_01b_analyzePRF
-ecog_APRF_01c_visualizePRF
+ecog_APRFF_01b_analyzePRF
+ecog_APRFF_01c_visualizePRF
 
 %% Finish session
 if exist('gcp','file'), delete(gcp('nocreate'));  end

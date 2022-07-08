@@ -26,7 +26,7 @@ function    [data,data2,xR2fldname] = ecog_updatePRFdata(data,varargin)
 
 %% check inputs
 %-- set defaults
-chanDir = fullfile(analysisRootPath,'Data','Channels');
+chanDir = fullfile(SetDefaultAnalysisPath('DAT'),'Channels');
 updatechan = true;
 updateR2   = false;
 updatexR2  = false;

@@ -1,5 +1,5 @@
-function [modeldata, prf_params, xR2fldname, usefulltsxR2] = ecog_prf_loadprfs(subjectList,targetBAND,savePth,modeldataID,prfID,average,smoothingMode,smoothingN,prfmodel,gaussianmode,selectchs,selectch_exFEF,selectch_thresh,usefulltsR2,usefulltsxR2,skipsummarizeROIs)
-% [modeldata, prf_params, xR2fldname, usefulltsxR2] = ECOG_PRF_LOADPRFS(subjectList,modeldataID,prfID,targetBAND,average,smoothingMode,smoothingN,prfmodel,gaussianmode,selectchs,selectch_exFEF,selectch_thresh,usefulltsR2,usefulltsxR2,skipsummarizeROIs)
+function [modeldata, prf_params, xR2fldname, usefulltsxR2] = ecog_prf_loadprfs(subjectList,targetBAND,prfPth,modeldataID,prfID,average,smoothingMode,smoothingN,prfmodel,gaussianmode,selectchs,selectch_exFEF,selectch_thresh,usefulltsR2,usefulltsxR2,skipsummarizeROIs)
+% [modeldata, prf_params, xR2fldname, usefulltsxR2] = ECOG_PRF_LOADPRFS(subjectList,targetBAND,prfPth,modeldataID,prfID,average,smoothingMode,smoothingN,prfmodel,gaussianmode,selectchs,selectch_exFEF,selectch_thresh,usefulltsR2,usefulltsxR2,skipsummarizeROIs)
 %    loads pRF results and rearrange data for further analysis
 % 
 % Outputs:
@@ -11,7 +11,7 @@ function [modeldata, prf_params, xR2fldname, usefulltsxR2] = ecog_prf_loadprfs(s
 % Inputs:
 %   [fine name related]
 %   subjectList     = Subjects name list
-%   savePth         = Directory where mat files are saved 
+%   prfPth          = Directory where mat files are saved 
 %   modeldataID     = file name id for model timecourse
 %   prfID           = file name id for pRF parameters
 % 
@@ -52,7 +52,7 @@ opts.smoothingN     = smoothingN;
 end
 opts.issave         = false;
 opts.compute        = false;
-opts.outputDir      = fullfile(savePth, 'pRFmodel');
+opts.outputDir      = prfPth;
 
 opts.targetBAND     = targetBAND;
 modeldata   = ecog_prf_constructTimeSeries(subjectList, opts);

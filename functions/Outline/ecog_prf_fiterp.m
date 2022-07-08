@@ -95,7 +95,7 @@ end
 if opts.issave && ~exist(opts.outputDir, 'dir'),     mkdir(opts.outputDir); end
 if opts.doplots && ~exist(opts.plotsavedir, 'dir'), mkdir(opts.plotsavedir); end
 
-%-- Correct Subject Information
+%-- Collect Subject Information
 subjectList_fname = 'subjectlist.tsv';
 SbjInfo    = loadSbjInfo(subjectList_fname,'all');
 hasSbjInfo = ~isempty(SbjInfo) && istablefield(SbjInfo,'participant_id');

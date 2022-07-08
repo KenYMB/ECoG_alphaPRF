@@ -56,8 +56,9 @@ function [modeldata] = ecog_prf_constructTimeSeriesERP(regressor, opts)
 %% Set options
 %--Define inputs 
 % <opts>
+SetDefaultAnalysisPath('DATA','pRFmodel','opts.outputDir');
+SetDefaultAnalysisPath('FIGURE','pRF','opts.plotsavedir');
 SetDefault('opts.issave',false);
-SetDefault('opts.outputDir',fullfile(analysisRootPath, 'Data', 'pRFmodel'));
 SetDefault('opts.stimulus.apertures',which('bar_apertures.mat'));
 SetDefault('opts.stimulus.apertures',fullfile(analysisRootPath, 'Data','stimuli','bar_apertures.mat'));
 SetDefault('opts.stimulus.res',[100 100]);
@@ -66,7 +67,6 @@ SetDefault('opts.smoothingMode','decimate');    % 'none','smooth','decimate'(def
 SetDefault('opts.smoothingN',3);                % integar: width of smoothing window (default = 3)
     SetDefault('opts.doplots',false);
     SetDefault('opts.doplots_alpha',false);
-    SetDefault('opts.plotsavedir',fullfile(analysisRootPath, 'Figures', 'pRF'));
     SetDefault('opts.plot.XLim',[1 100]);
     SetDefault('opts.plot.XScale','linear');
     SetDefault('opts.plot.fontSize',16);

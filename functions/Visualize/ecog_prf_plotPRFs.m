@@ -21,8 +21,9 @@ function ecog_prf_plotPRFs(varargin)
 %   - channels
 % - opts                = structure with the following fields:
 %   - visualfield       = size in visual angle (default = 16.6)
-%   - doplots_prfmap
-%   - doplots_prfts
+%   - doplots
+%    - doplots_prfmap
+%    - doplots_prfts
 %   - skipprojection
 %   - plotbenson        = 'yes' or 'no'(default)  % plot results estimated from benson atlas
 %   - closefig          = 'yes' or 'no'(default)  % automatically close figures
@@ -62,21 +63,22 @@ for jj=1:ndatas
 end
 
 % <opts>
-    SetDefault('opts.visualfield',16.6);
-    SetDefault('opts.doplots_prfmap',true);
-    SetDefault('opts.doplots_prfts',true);
-    SetDefault('opts.skipprojection',true);
-    SetDefault('opts.plotbenson','no');
-    SetDefault('opts.closefig','no');
-    SetDefault('opts.plotsavedir',fullfile(analysisRootPath, 'Figures', 'pRF'));
-    SetDefault('opts.plot.addR2ToTitle','yes');
-    SetDefault('opts.plot.RotGrid',true,1);
-    SetDefault('opts.plot.fontSize',14);
+SetDefaultAnalysisPath('FIGURE','pRF','opts.plotsavedir');
+SetDefault('opts.visualfield',16.6);
+SetDefault('opts.doplots',true);
+SetDefault('opts.doplots_prfmap',opts.doplots);
+SetDefault('opts.doplots_prfts',opts.doplots);
+SetDefault('opts.skipprojection',true);
+SetDefault('opts.plotbenson','no');
+SetDefault('opts.closefig','no');
+SetDefault('opts.plot.addR2ToTitle','yes');
+SetDefault('opts.plot.RotGrid',true,1);
+SetDefault('opts.plot.fontSize',14);
 
 %-- check inputs and outputs
 if (opts.doplots_prfmap || opts.doplots_prfts) && ~exist(opts.plotsavedir, 'dir'), mkdir(opts.plotsavedir); end
 
-%-- Correct Subject Information
+%-- Collect Subject Information
 subjectList_fname = 'subjectlist.tsv';
 SbjInfo    = loadSbjInfo(subjectList_fname,'all');
 hasSbjInfo = ~isempty(SbjInfo) && istablefield(SbjInfo,'participant_id');
@@ -118,7 +120,11 @@ for ii = 1 : size(modeldata,1)
             gaussianmode         = iresults{1}.gaussianmode;
         end
         
-        res = size(imodeldata{1}.stimulus{1},[1,2]);
+        stim_tmp = imodeldata{1}.stimulus;
+        while iscell(stim_tmp)
+            stim_tmp = stim_tmp{1};
+        end
+        res = size(stim_tmp,[1,2]);
         
     %-- plot Benson reference
     plotbenson   = false;

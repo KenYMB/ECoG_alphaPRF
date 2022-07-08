@@ -58,8 +58,8 @@ function [prf] = ecog_prf_analyzePRF(modeldata, opts)
 %% Set options
 %--Define inputs 
 % <opts>
+SetDefaultAnalysisPath('DATA','pRFmodel','opts.outputDir');
 SetDefault('opts.issave',false);
-SetDefault('opts.outputDir',fullfile(analysisRootPath, 'Data', 'pRFmodel'));
 % <options for analyzePRF>
 SetDefault('opts.hrf',1);
 SetDefault('opts.maxpolydeg',0);
@@ -75,19 +75,12 @@ SetDefault('opts.skipexist',[]);
 SetDefault('opts.fileid','prf');
 SetDefault('opts.average','runs');                      % just for loading files
 SetDefault('opts.allowlag',false);                      % just for loading files
-SetDefault('opts.targetBAND','FaCLb');                  % just for loading files
+SetDefault('opts.targetBAND','FaCLb','cell');           % just for loading files
 SetDefault('opts.smoothingMode','decimate');            % just for loading files
 SetDefault('opts.smoothingN',3);                        % just for loading files
         
 %-- check inputs and outputs
 assert(~isempty(modeldata), 'Please provide time-series data');
-if iscell(opts.targetBAND) && length(opts.targetBAND)~=1
-    assert(numel(opts.targetBAND)==numel(modeldata),...
-        'opts.targetBAND is a charactor-array or cell-array of the same length as the 1st argument');
-else
-    if ~iscell(opts.targetBAND), opts.targetBAND = {opts.targetBAND}; end
-    opts.targetBAND = repmat(opts.targetBAND,numel(modeldata),1);
-end
 if isempty(opts.compute)
     SetDefault('opts.skipexist',true);
     opts.compute = true;
@@ -112,7 +105,7 @@ for ii = 1 : length(modeldata)
         compute      = false;
         %-- Takeover parameters
         average         = opts.average;
-        targetBAND      = fixBANDname(opts.targetBAND{ii},opts.allowlag);
+        targetBAND      = getBANDname(opts.targetBAND,opts.allowlag,ii,length(modeldata));
         smoothingMode   = opts.smoothingMode;
         smoothingN      = opts.smoothingN;
     else
@@ -271,7 +264,14 @@ isdouble     = isa(compacc(1),'double');
 if ~isdouble, postfix = sprintf('%s_%s',postfix,class(compacc(1)));  end
 end
 
-function targetBAND = fixBANDname(targetBAND,allowlag)
+function targetBAND = getBANDname(targetBANDs,allowlag,idx,nidx)
+if length(targetBANDs)==1
+    targetBAND = targetBANDs{1};
+elseif length(targetBANDs)==nidx
+    targetBAND = targetBANDs{idx};
+else
+    error('%s must be a charactor-array or cell-array of the same length as the 1st argument','opts.targetBAND');
+end
 if allowlag && ~endsWith(targetBAND,'lag')
     targetBAND = [targetBAND 'lag'];
 end

@@ -77,6 +77,10 @@ elseif istable(prf_subj)    % consider prf_subj as channels itself
 elseif ~iscell(prf_subj)
     prf_subj = {prf_subj};
 end
+
+%-- ignore empty subjects
+emptysbj = cellfun(@(C) isempty(C.channels),prf_subj);
+prf_subj(emptysbj) = [];
     
 %-- set ROI names (get category names if channel table has categorical array)
 bensonarea = ["V1","V2","V3","hV4","VO1","VO2","V3a","V3b","LO1","LO2","TO1","TO2","none"];
@@ -95,7 +99,7 @@ end
 prfflds = {'ang', 'ecc', 'expt', 'rfsize', 'R2', 'gain', 'xR2', 'xval', 'resnorms', 'numiters', 'meanvol', 'params','testperformance','aggregatedtestperformance'}; % exclude 'noisereg'
 prfflds = [prfflds, {'datats'}]; % add fields for model time-series
 prfflds = [prfflds, {'spectra','spectra_off'}]; % add fields for spectral data
-if isfield(prf_subj{1},'stimulus') && iscell(prf_subj{1}.stimulus) && iscell(prf_subj{1}.stimulus{1})
+if isfield(prf_subj{1},'stimulus') && iscell(prf_subj{1}.stimulus) && ~isempty(prf_subj{1}.stimulus) && iscell(prf_subj{1}.stimulus{1})
 prfflds = [prfflds, {'stimulus'}]; % add fields for model time-series & has double cell-array stimulus
 end
 indflds = {'subject','results_xval'};
@@ -182,7 +186,12 @@ else
         if iscell(channels.low_cutoff)
             channels.low_cutoff = nan(height(channels),1);
         end
-        channelList = cat(1,channelList,channels);
+        if isempty(channelList)
+            channelList = channels;
+        else
+            [~,ia,ib] = intersect(fieldnames(summary(channelList)),fieldnames(summary(channels)),'stable');
+            channelList = cat(1,channelList(:,ia),channels(:,ib));
+        end
     end
     if istablefield(channelList,'bensonarea')
         channelList.bensonarea   = categorical(channelList.bensonarea,bensonarea);

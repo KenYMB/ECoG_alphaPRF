@@ -4,28 +4,30 @@
 
 %% Initialize
 close all;
+clear modeldataID prfID;
 
-SetDefaultAnalysisPath;
-plotsavepth    = fullfile(figPth, 'Publication');
+run_checkPath;
+plotsavePthP   = SetDefaultAnalysisPath('FIG','Publication');
 issaveplot     = false;
 
 %% Figure
-plotsavedir    = fullfile(plotsavepth, 'Figure4');
+plotsavedir    = fullfile(plotsavePthP, 'Figure4');
 if ~exist(plotsavedir,'dir'), mkdir(plotsavedir); end
 
 %-- Spectra
-ecog_APRF_10e_representative_pRFspectrum;
+ecog_APRFF_10e_representative_pRFspectrum;
 
-savefigauto(hF(1),fullfile(plotsavedir,'Figure4a_broadband'));
-savefigauto(hF(2),fullfile(plotsavedir,'Figure4a_alpha'));
+savefigauto(hF(1),fullfile(plotsavedir,'Figure4a_broadband'),'-vector');
+savefigauto(hF(2),fullfile(plotsavedir,'Figure4a_alpha'),'-vector');
 
 %-- Timecourse
-ecog_APRF_10d_representative_pRF;
+ecog_APRFF_10d_representative_pRF;
 
-savefigauto(hF{1},fullfile(plotsavedir,'Figure4b_broadband'));
-savefigauto(hF{2},fullfile(plotsavedir,'Figure4b_alpha'));
+figure(hF(1));    ylim([min(ylim) 850]);
+savefigauto(hF(1),fullfile(plotsavedir,'Figure4b_broadband'),'-vector');
+savefigauto(hF(2),fullfile(plotsavedir,'Figure4b_alpha'),'-vector');
 
 %-- pRF location
-ecog_APRF_10d2_representative_pRF_boot;
+ecog_APRFF_10d2_representative_pRF_boot;
 
-savefigauto(hF{1},fullfile(plotsavedir,'Figure4c'));
+savefigauto(hF(1),fullfile(plotsavedir,'Figure4c'),'-vector');

@@ -17,9 +17,10 @@ function [freq] = ecog_prf_spectra(data, opts)
 %   - issave
 %   - outputDir
 %   - doplots
-%   - doplots_alpha
-%   - doplots_broadband
-%   - doplots_whole
+%    - doplots_alpha
+%    - doplots_broadband
+%    - doplots_whole
+%    - doplots_wholelog
 %   - plotsavedir
 %   - plot          % see ecog_plotSpectra for this option
 %   ---------------------
@@ -36,10 +37,12 @@ function [freq] = ecog_prf_spectra(data, opts)
 
 % Hidden options
 % - opts
-%   - compute       = [];
-%   - skipexist     = [];
-%   - fileid        = 'freq_spectra';
-%   - taskNames     = {'prf'};
+%   - compute        = [];
+%   - skipexist      = [];
+%   - fileid         = 'freq_spectra';
+%   - taskNames      = {'prf'};
+%   - freq_alpha     = [3 25];
+%   - freq_broadband = [20 220];
 
 % Hidden usage
 % - opts.compute = false;        % load or bypass data
@@ -57,15 +60,18 @@ function [freq] = ecog_prf_spectra(data, opts)
 %% Set options
 %--Define inputs 
 % <opts>
+SetDefaultAnalysisPath('DATA','Spectrum','opts.outputDir');
+SetDefaultAnalysisPath('FIGURE','spectrum','opts.plotsavedir');
 SetDefault('opts.target_time',[0 0.5]);
 SetDefault('opts.issave',false);
-SetDefault('opts.outputDir',fullfile(analysisRootPath, 'Data', 'Spectrum'));
 SetDefault('opts.doplots',false);
 SetDefault('opts.doplots_alpha',opts.doplots);
 SetDefault('opts.doplots_broadband',opts.doplots);
 SetDefault('opts.doplots_whole',opts.doplots);
-SetDefault('opts.plotsavedir',fullfile(analysisRootPath, 'Figures', 'spectrum'));
-SetDefault('opts.plot.XLim',[1 100]);
+SetDefault('opts.doplots_wholelog',opts.doplots);
+SetDefault('opts.freq_alpha',[3 25]);                   % frequency range for alpha plotting
+SetDefault('opts.freq_broadband',[20 220]);             % frequency range for braodband plotting
+SetDefault('opts.plot.XLim',[]);                        % frequency range for whole plotting
 SetDefault('opts.plot.XScale','linear');
 SetDefault('opts.plot.fontSize',16);
 % <hidden opts>
@@ -89,7 +95,7 @@ end
 if opts.issave && ~exist(opts.outputDir, 'dir'),     mkdir(opts.outputDir); end
 if (opts.doplots||opts.doplots_alpha) && ~exist(opts.plotsavedir, 'dir'), mkdir(opts.plotsavedir); end
 
-%-- Correct Subject Information
+%-- Collect Subject Information
 subjectList_fname = 'subjectlist.tsv';
 SbjInfo    = loadSbjInfo(subjectList_fname,'all');
 hasSbjInfo = ~isempty(SbjInfo) && istablefield(SbjInfo,'participant_id');
@@ -206,50 +212,8 @@ for ii = 1 : numel(data)
     end
     
     %-- Plot figures
-    if opts.doplots
-        foi     = f>=opts.plot.XLim(1) & f<=opts.plot.XLim(2);
-        
-        trials = [];
-        trials.pwrspctrm    = spectra(:,:,foi);
-        trials.f            = f(foi);
-        trials.events       = events;
-        trials.channels     = channels;
-        
-        
-        %%-- set 0 for prf BLANK, 1 for prf stimuli, and 10+trial_type for other stimuli
-        stmlist = ismember(trials.events.task_name,'prf')&~ismember(trials.events.trial_name,'BLANK') + ...
-                  ~ismember(trials.events.task_name,'prf').*(trials.events.trial_type+10); 
-
-        %%-- set trial name 'PRF' & set specs
-        trials.events.trial_name(stmlist==1) = {'PRF'};
-        eventList   = table(trials.events.trial_name,stmlist,'VariableNames',{'trial_name','stmlist'});
-        eventList   = sortrows(eventList,'stmlist');
-        eventList   = unique(eventList.trial_name,'stable');
-        
-        specs = [];
-        specs.plot      = opts.plot;
-        
-        if hasHDgrid,  	whichElectrodes = trials.channels.name(~contains(trials.channels.name,'GB'));
-        else,         	whichElectrodes = trials.channels.name;
-        end
-        
-        figureName = sprintf('spectra-prf%s_%s', postfix,subject);
-        
-        ecog_plotSpectra(trials, whichElectrodes, eventList,[], specs);
-        hgexport(gcf, fullfile(opts.plotsavedir, figureName), hgexport('factorystyle'), 'Format', 'png'); close;
-          if hasHDgrid
-          [~,p]=ecog_plotGridSpectra(trials, 'GB', eventList, [], specs);
-          for pp=1:length(p)
-            if length(p)==1,  hgexport(p(pp), fullfile(opts.plotsavedir, sprintf('%s-GB',figureName)), hgexport('factorystyle'), 'Format', 'png');
-            else,             hgexport(p(pp), fullfile(opts.plotsavedir, sprintf('%s-GB-%02d',figureName,pp)), hgexport('factorystyle'), 'Format', 'png');
-            end
-          end
-          close(p);
-          end
-    end
     if opts.doplots_alpha
-        f_alpha = [3 25];
-        foi     = f>=f_alpha(1) & f<=f_alpha(2);
+        foi  = f>=opts.freq_alpha(1) & f<=opts.freq_alpha(2);
         
         trials = [];
         trials.pwrspctrm    = spectra(:,:,foi);
@@ -290,8 +254,7 @@ for ii = 1 : numel(data)
           end
     end
     if opts.doplots_broadband
-        f_bb = [20 220];
-        foi     = f>=f_bb(1) & f<=f_bb(2);
+        foi  = f>=opts.freq_broadband(1) & f<=opts.freq_broadband(2);
         
         trials = [];
         trials.pwrspctrm    = spectra(:,:,foi);
@@ -334,7 +297,56 @@ for ii = 1 : numel(data)
           end
     end
     if opts.doplots_whole
-        foi     = f>=opts.plot.XLim(1) & f<=opts.plot.XLim(2);
+        if isempty(opts.plot.XLim)
+            foi  = true(size(f));
+        else
+            foi  = f>=opts.plot.XLim(1) & f<=opts.plot.XLim(2);
+        end
+        
+        trials = [];
+        trials.pwrspctrm    = spectra(:,:,foi);
+        trials.f            = f(foi);
+        trials.events       = events;
+        trials.channels     = channels;
+        
+        
+        %%-- set 0 for prf BLANK, 1 for prf stimuli, and 10+trial_type for other stimuli
+        stmlist = ismember(trials.events.task_name,'prf')&~ismember(trials.events.trial_name,'BLANK') + ...
+                  ~ismember(trials.events.task_name,'prf').*(trials.events.trial_type+10); 
+
+        %%-- set trial name 'PRF' & set specs
+        trials.events.trial_name(stmlist==1) = {'PRF'};
+        eventList   = table(trials.events.trial_name,stmlist,'VariableNames',{'trial_name','stmlist'});
+        eventList   = sortrows(eventList,'stmlist');
+        eventList   = unique(eventList.trial_name,'stable');
+        
+        specs = [];
+        specs.plot      = opts.plot;
+        
+        if hasHDgrid,  	whichElectrodes = trials.channels.name(~contains(trials.channels.name,'GB'));
+        else,         	whichElectrodes = trials.channels.name;
+        end
+        
+        figureName = sprintf('spectra-prf%s_%s_whole', postfix,subject);
+        
+        ecog_plotSpectra(trials, whichElectrodes, eventList,[], specs);
+        hgexport(gcf, fullfile(opts.plotsavedir, figureName), hgexport('factorystyle'), 'Format', 'png'); close;
+          if hasHDgrid
+          [~,p]=ecog_plotGridSpectra(trials, 'GB', eventList, [], specs);
+          for pp=1:length(p)
+            if length(p)==1,  hgexport(p(pp), fullfile(opts.plotsavedir, sprintf('%s-GB',figureName)), hgexport('factorystyle'), 'Format', 'png');
+            else,             hgexport(p(pp), fullfile(opts.plotsavedir, sprintf('%s-GB-%02d',figureName,pp)), hgexport('factorystyle'), 'Format', 'png');
+            end
+          end
+          close(p);
+          end
+    end
+    if opts.doplots_wholelog
+        if isempty(opts.plot.XLim)
+            foi = true(size(f));
+        else
+            foi     = f>=opts.plot.XLim(1) & f<=opts.plot.XLim(2);
+        end
         
         trials = [];
         trials.pwrspctrm    = spectra(:,:,foi);
@@ -361,7 +373,7 @@ for ii = 1 : numel(data)
         else,         	whichElectrodes = trials.channels.name;
         end
         
-        figureName = sprintf('spectra-prf_%s_whole', subject);
+        figureName = sprintf('spectra-prf_%s_wholelog', subject);
         
         ecog_plotSpectra(trials, whichElectrodes, eventList,[], specs);
         hgexport(gcf, fullfile(opts.plotsavedir, figureName), hgexport('factorystyle'), 'Format', 'png'); close;

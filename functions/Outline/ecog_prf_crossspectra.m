@@ -48,10 +48,10 @@ function [freq] = ecog_prf_crossspectra(data, opts)
 %% Set options
 %--Define inputs 
 % <opts>
+SetDefaultAnalysisPath('DATA','xSpectrum','opts.outputDir');
 SetDefault('opts.target_time',[0 0.5]);
 SetDefault('opts.channels',[]);
 SetDefault('opts.issave',false);
-SetDefault('opts.outputDir',fullfile(analysisRootPath, 'Data', 'xSpectrum'));
 SetDefault('opts.target_freq',[]);
 SetDefault('opts.excl_freq',[]);
 SetDefault('opts.targetBAND','');
@@ -96,7 +96,7 @@ else
 end
 if opts.issave && ~exist(opts.outputDir, 'dir'),     mkdir(opts.outputDir); end
 
-%-- Correct Subject Information
+%-- Collect Subject Information
 subjectList_fname = 'subjectlist.tsv';
 SbjInfo    = loadSbjInfo(subjectList_fname,'all');
 hasSbjInfo = ~isempty(SbjInfo) && istablefield(SbjInfo,'participant_id');
