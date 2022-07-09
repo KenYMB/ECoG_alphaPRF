@@ -5,4 +5,5 @@
 
 %% run in system
 assert(~ispc, 'Data downloading is currently not available for Windows.');
+run_checkPath;
 system([which('ecog_APRFF_00_downloadData.sh') ' ' bidsRootPath]);
