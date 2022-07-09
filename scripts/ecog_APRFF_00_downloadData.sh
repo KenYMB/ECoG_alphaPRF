@@ -1,35 +1,26 @@
 #!/bin/bash
-## Download data files from fileserver
+## Download data files from OpenNeuro
+#   ecog_APRFF_00_downloadData.sh DIRECTORY
+
+## Check openneuro function
+if ! type openneuro >/dev/null 2>&1; then
+    echo "(Error) Need to install openneuro in your system" >&2
+    exit 1
+fi
 
 # Get project directory
-PROJECTNAME=ECoG_alpha
-DATADIR=Data
 if [ $# -ne 0 ];
 then
-    PROJECTDIR=$1 
+    DATADIR=$1 
 else
-    PROJECTDIR=$(cd "$(dirname $(readlink $0 || echo $0))/../..";pwd -P) 
+    DATADIR=$(cd "$(dirname $(readlink $0 || echo $0))/../../BIDS";pwd -P) 
 fi
-echo Dataset will be downloaded into ${PROJECTDIR}/${DATADIR}
+echo Dataset will be downloaded into ${DATADIR}
+mkdir -p ${DATADIR}
 
-# Set server directory
-SERVERDIR=/Volumes/server/Projects/${PROJECTNAME}
-if [ ! -e $SERVERDIR ]; then
-    echo Type the path of winawerlab fileserver
-    read SERVERDIR
-    if [ -e ${SERVERDIR}/${PROJECTNAME} ]; then
-        SERVERDIR=${SERVERDIR}/${PROJECTNAME}
-    elif [ -e ${SERVERDIR}/${PROJECTNAME} ]; then
-        SERVERDIR=${SERVERDIR}/Projects/${PROJECTNAME}
-    elif [ -e ${SERVERDIR}/server/Projects/${PROJECTNAME} ]; then
-        SERVERDIR=${SERVERDIR}/server/Projects/${PROJECTNAME}
-    else
-        echo "Couldn't find winawerlab fileserver."
-        exit 1
-    fi
-fi
+# OpenNeuro
+ACCESSID=ds004194
+openneuro download $ACCESSID ${DATADIR}
 
 # Download
-echo Copying from $SERVERDIR
-rsync -avzuP ${SERVERDIR}/${DATADIR}  ${PROJECTDIR}
 echo Complete

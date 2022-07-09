@@ -1,21 +1,26 @@
-function    checkPath()
+function    checkPath(Project)
 % Check path setting
 
 % Dependency: lookaroundToolbox, ProjectName
 
 % 20220224 Yuasa
+% 20220608 Yuasa - update
 
 %-- Set ProjectName
-if isempty(which('ProjectName'))
-    envPath = dir(fullfile(fileparts(mfilename('fullpath')),'..','Environment','ProjectName.m'));
-    addpath(envPath(1).folder);
+if ~exist('Project','var')||isempty(Project)
+    if isempty(which('ProjectName'))
+        envPath = dir(fullfile(fileparts(mfilename('fullpath')),'..','..','Environment','ProjectName.m'));
+        assert(~isempty(envPath),'ProjectName not found');
+        addpath(envPath(1).folder);
+    end
+    Project = ProjectName;
 end
 
 %-- Check availability of ToolboxToolbox
 if ~isempty(which('tbUse'))
     % check some functions
     if isempty(which('ecog_prf_analyzePRF')) || isempty(which('bidsEcogGetMatchedAtlas')) || isempty(which('ft_defaults')) || isempty(which('analyzePRF'))
-        tbUse(ProjectName);
+        tbUse(Project);
     end
 else
     % check toolboxes
@@ -23,7 +28,7 @@ else
         tbPath = fileparts(mfilename('fullpath'));
         [~,tbPath] = fileattrib(fullfile(tbPath,'..','..'));
         tbPath = tbPath.Name;
-        warning('Setting path to %s',ProjectName);
+        warning('Setting path to %s',Project);
         addpath(genpath(tbPath));
     end
     if isempty(which('bidsEcogGetMatchedAtlas'))
