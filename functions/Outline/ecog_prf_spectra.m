@@ -22,7 +22,7 @@ function [freq] = ecog_prf_spectra(data, opts)
 %    - doplots_whole
 %    - doplots_wholelog
 %   - plotsavedir
-%   - plot          % see ecog_plotSpectra for this option
+%   - plot          % see ecog_plotGridSpectra for this option
 %   ---------------------
 %   - fileid
 %
@@ -241,7 +241,7 @@ for ii = 1 : numel(data)
         
         figureName = sprintf('spectra-prf%s_%s_alpha', postfix,subject);
         
-        ecog_plotSpectra(trials, whichElectrodes, eventList,[], specs);
+        ecog_plotGridSpectra(trials, whichElectrodes, eventList,[], specs);
         hgexport(gcf, fullfile(opts.plotsavedir, figureName), hgexport('factorystyle'), 'Format', 'png'); close;
           if hasHDgrid
           [~,p]=ecog_plotGridSpectra(trials, 'GB', eventList, [], specs);
@@ -284,7 +284,7 @@ for ii = 1 : numel(data)
         
         figureName = sprintf('spectra-prf%s_%s_broadband', postfix,subject);
         
-        ecog_plotSpectra(trials, whichElectrodes, eventList,[], specs);
+        ecog_plotGridSpectra(trials, whichElectrodes, eventList,[], specs);
         hgexport(gcf, fullfile(opts.plotsavedir, figureName), hgexport('factorystyle'), 'Format', 'png'); close;
           if hasHDgrid
           [~,p]=ecog_plotGridSpectra(trials, 'GB', eventList, [], specs);
@@ -329,7 +329,7 @@ for ii = 1 : numel(data)
         
         figureName = sprintf('spectra-prf%s_%s_whole', postfix,subject);
         
-        ecog_plotSpectra(trials, whichElectrodes, eventList,[], specs);
+        ecog_plotGridSpectra(trials, whichElectrodes, eventList,[], specs);
         hgexport(gcf, fullfile(opts.plotsavedir, figureName), hgexport('factorystyle'), 'Format', 'png'); close;
           if hasHDgrid
           [~,p]=ecog_plotGridSpectra(trials, 'GB', eventList, [], specs);
@@ -375,7 +375,7 @@ for ii = 1 : numel(data)
         
         figureName = sprintf('spectra-prf_%s_wholelog', subject);
         
-        ecog_plotSpectra(trials, whichElectrodes, eventList,[], specs);
+        ecog_plotGridSpectra(trials, whichElectrodes, eventList,[], specs);
         hgexport(gcf, fullfile(opts.plotsavedir, figureName), hgexport('factorystyle'), 'Format', 'png'); close;
           if hasHDgrid
           [~,p]=ecog_plotGridSpectra(trials, 'GB', eventList, [], specs);

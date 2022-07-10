@@ -75,7 +75,7 @@ else
   specs.plot.XScale   = 'linear';
   specs.plot.mean     = 'geometric';
 
-  ecog_plotSpectra(trials, trials.channels.name, eventList,[],specs);
+  ecog_plotGridSpectra(trials, trials.channels.name, eventList,[],specs);
 
   %%
   close;

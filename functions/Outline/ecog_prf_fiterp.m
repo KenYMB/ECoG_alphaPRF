@@ -21,7 +21,7 @@ function [regressor] = ecog_prf_fiterp(data, opts)
 %   - outputDir
 %   - doplots
 %   - plotsavedir
-%   - plot          % see ecog_plotTimecourses for this option
+%   - plot          % see ecog_plotGridTimecourses for this option
 %   ---------------------
 %   - fileid
 %
@@ -242,7 +242,7 @@ for ii = 1 : length(data)
         %%-- plot pre regression
         figureName = sprintf('evoked-prf_%s_predictor', subject);
         
-        ecog_plotTimecourses(trials, whichElectrodes, eventList, specs);
+        ecog_plotGridTimecourses(trials, whichElectrodes, eventList, specs);
         hgexport(gcf, fullfile(opts.plotsavedir, figureName), hgexport('factorystyle'), 'Format', 'png'); close;
           if hasHDgrid
           [~,p]=ecog_plotGridTimecourses(trials, 'GB', eventList, specs);

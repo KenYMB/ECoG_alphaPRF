@@ -22,7 +22,7 @@ function [data] = ecog_prf_regressData(data, opts)
 %   - outputDir
 %   - doplots
 %   - plotsavedir
-%   - plot          % see ecog_plotTimecourses for this option
+%   - plot          % see ecog_plotGridTimecourses for this option
 %   ---------------------
 %   - fileid
 %
@@ -204,7 +204,7 @@ for ii = 1 : length(data)
         if whichplt~=1
         figureName = sprintf('evoked-prf%s_%s_regress-pre', postfix,subject);
         
-        ecog_plotTimecourses(trials, whichElectrodes, eventList, specs);
+        ecog_plotGridTimecourses(trials, whichElectrodes, eventList, specs);
         hgexport(gcf, fullfile(opts.plotsavedir, figureName), hgexport('factorystyle'), 'Format', 'png'); close;
           if hasHDgrid
           [~,p]=ecog_plotGridTimecourses(trials, 'GB', eventList, specs);
@@ -222,7 +222,7 @@ for ii = 1 : length(data)
         figureName = sprintf('evoked-prf%s_%s_regress-post', postfix,subject);
         
         trials.evoked   = evoked;
-        ecog_plotTimecourses(trials, whichElectrodes, eventList, specs);
+        ecog_plotGridTimecourses(trials, whichElectrodes, eventList, specs);
         hgexport(gcf, fullfile(opts.plotsavedir, figureName), hgexport('factorystyle'), 'Format', 'png'); close;
           if hasHDgrid
           [~,p]=ecog_plotGridTimecourses(trials, 'GB', eventList, specs);
