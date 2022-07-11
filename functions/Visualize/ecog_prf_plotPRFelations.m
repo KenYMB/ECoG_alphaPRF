@@ -584,7 +584,7 @@ for iroi = selroi
         hasref = false;
         if newax
           if showref
-              [hasref,href,reflebel] = plot_ref(trgt{:},iroi,roiList,reflineCol);
+              [hasref,href,reflebel] = plot_ref(trgt{:},iroi,roiList,reflineCol,plt_LineWidth);
               if hasref
                   hl(end+1)         = href;
                   legtitle{end+1}   = reflebel;
@@ -601,7 +601,7 @@ for iroi = selroi
     %-- show reference line [Himmelberg 2021] (if not has reference yet)
     if ~hasref
         if showref
-            [hasref,href,reflebel] = plot_ref(trgt{:},iroi,roiList,reflineCol);
+            [hasref,href,reflebel] = plot_ref(trgt{:},iroi,roiList,reflineCol,plt_LineWidth);
             if hasref
                 hl(end+1)         = href;
                 legtitle{end+1}   = reflebel;
@@ -650,7 +650,7 @@ function retval = isSTRs(inp)
 retval = iscellstr(inp) || isstring(inp) || ischar(inp);
 end
 
-function [hasref,h,label] = plot_ref(hax,Target,iroi,roiList,reflineCol)
+function [hasref,h,label] = plot_ref(hax,Target,iroi,roiList,reflineCol,LineWidth)
 % Plot reference  
 
 narginchk(3,5);
@@ -688,7 +688,7 @@ end
 %-- plot ref
 if hasref
     t = xlim(hax);   t = linspace(t(1),t(2),100);
-    h = plot(hax, t,t*Sl + Int,'-.','Color',reflineCol,'LineWidth',plt_LineWidth);
+    h = plot(hax, t,t*Sl + Int,'-.','Color',reflineCol,'LineWidth',LineWidth);
 end
 
 end
