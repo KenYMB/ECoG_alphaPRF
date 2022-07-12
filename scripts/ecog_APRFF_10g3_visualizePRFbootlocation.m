@@ -61,21 +61,21 @@ usefulltsxR2  = false;
     modeldataID  = 'freq_spectra-timeseries-boot';
     prfID        = 'prf-boot';
     usefulltsxR2 = false;
-    ecog_APRFF_INITa_loaddata;
-    ecog_APRFF_INITb_mergedata;
-
-    model_all_bb_boot = model_all_bb;
-    model_all_a_boot  = model_all_a;
-    prf_all_bb_boot   = prf_all_bb;
-    prf_all_a_boot    = prf_all_a;
+%     ecog_APRFF_INITa_loaddata;
+%     ecog_APRFF_INITb_mergedata;
+% 
+%     model_all_bb_boot = model_all_bb;
+%     model_all_a_boot  = model_all_a;
+%     prf_all_bb_boot   = prf_all_bb;
+%     prf_all_a_boot    = prf_all_a;
     
     ecog_APRFF_INITc_postfix;
     
-modeldataID = [];
-prfID       = [];
-
-ecog_APRFF_INITa_loaddata;
-ecog_APRFF_INITb_mergedata;
+% modeldataID = [];
+% prfID       = [];
+% 
+% ecog_APRFF_INITa_loaddata;
+% ecog_APRFF_INITb_mergedata;
 
 %% Load correlations
 ecog_APRFF_INITd_threshold
@@ -88,7 +88,7 @@ robustfit = true;
     ecog_prf_loadprfrelations(prfstatPth,R2mode,selectchs,postfix,boottype,threshold_bb,threshold_a,eclimit,robustfit);
 
 %%% prepare visualize
-nsubjects = length(prf_params_bb);
+% nsubjects = length(prf_params_bb);
 nroi  = length(rois);
 selroi = (nroi-1):nroi;
 % nvisarea  = length(prf_va_bb);

@@ -65,14 +65,14 @@ selectchs      = 'wangprobchs';
     allowmixbeta   = true;
 % va_area = 'wangarea';
 
-modeldataID  = 'freq_spectra-timeseries-boot';
+% modeldataID  = 'freq_spectra-timeseries-boot';
 prfID        = 'prf-boot';
 usefulltsxR2 = false;
 ecog_APRFF_INITa_loaddata;
 ecog_APRFF_INITb_mergedata;
 
-model_all_bb_boot = model_all_bb;
-model_all_a_boot  = model_all_a;
+% model_all_bb_boot = model_all_bb;
+% model_all_a_boot  = model_all_a;
 prf_all_bb_boot   = prf_all_bb;
 prf_all_a_boot    = prf_all_a;
 
