@@ -216,79 +216,20 @@ for ii = 1 : length(subjects)
         
         
         %% STEP 2: SELECT A SUBSET OF CHANNELS 
+        
+        fprintf('[%s] Step 2: Selecting channels with visual matches \n',mfilename);
 
         %-- Make selection on visual only, index into data + channels
-        fprintf('[%s] Step 2: Selecting channels with visual matches \n',mfilename);
-        if ismember('matchednode',channels.Properties.VariableNames)
-            chan_idx = ~isnan(channels.matchednode);
-        else
-            chan_idx1 = [];
-            if ismember('wangarea',channels.Properties.VariableNames)
-              chan_idx1 = [chan_idx1,~contains(channels.wangarea, 'none')];
-            end
-            if ismember('bensonarea',channels.Properties.VariableNames)
-              chan_idx1 = [chan_idx1,~contains(channels.bensonarea, 'none')];
-            end
-            if ismember('hcparea',channels.Properties.VariableNames)
-              chan_idx1 = [chan_idx1,~contains(channels.hcparea, 'none')];
-            end
-            chan_idx2 = [];
-            chan_idx2 = [chan_idx2, sum(channels(:,contains(channels.Properties.VariableNames,'wangprob_')).Variables,2)>0];
-            chan_idx2 = [chan_idx2, sum(channels(:,contains(channels.Properties.VariableNames,'hpcprob_')).Variables,2)>0];
-
-            chan_idx = any([chan_idx1, chan_idx2],2);
-        end
-          %%-- add HD grid channels (GA*,GB*,G*) which covered visual area (at least 10%)
-          chan_idx3 = [];
-          visarearate = 0.1;
-          if istablefield(channels,'group') && any(ismember(channels.group,'HDgrid'))
-              chan_grid = contains(channels.group, 'HDgrid');
-              if sum(all([chan_idx,chan_grid],2))>(sum(chan_grid)*visarearate)
-                chan_idx3 = [chan_idx3, chan_grid];
-              end
-          else      % if it's unsure channels.group has HDgrid information
-              gridHDthresh = 64;
-              chan_grid = startsWith(channels.name, 'GA');
-              if sum(chan_grid) > gridHDthresh
-                  channels.group(chan_grid) = {'HDgrid'};
-                  if sum(all([chan_idx,chan_grid],2))>(sum(chan_grid)*visarearate)
-                      chan_idx3 = [chan_idx3, chan_grid];
-                  end
-              else
-                  channels.group(chan_grid) = {'grid'};
-              end
-              chan_grid = startsWith(channels.name, 'GB');
-              if sum(chan_grid) > gridHDthresh
-                  channels.group(chan_grid) = {'HDgrid'};
-                  if sum(all([chan_idx,chan_grid],2))>(sum(chan_grid)*visarearate)
-                      chan_idx3 = [chan_idx3, chan_grid];
-                  end
-              else
-                  channels.group(chan_grid) = {'grid'};
-              end
-              chan_grid = startsWith(channels.name, 'GC');
-              if sum(chan_grid) > gridHDthresh
-                  channels.group(chan_grid) = {'HDgrid'};
-                  if sum(all([chan_idx,chan_grid],2))>(sum(chan_grid)*visarearate)
-                      chan_idx3 = [chan_idx3, chan_grid];
-                  end
-              else
-                  channels.group(chan_grid) = {'grid'};
-              end
-              chan_grid = startsWith(channels.name, 'G') & ~startsWith(channels.name, {'GA','GB','GC'});
-              if sum(chan_grid) > gridHDthresh
-                  channels.group(chan_grid) = {'HDgrid'};
-                  if sum(all([chan_idx,chan_grid],2))>(sum(chan_grid)*visarearate)
-                      chan_idx3 = [chan_idx3, chan_grid];
-                  end
-              else
-                  channels.group(chan_grid) = {'grid'};
-              end
-          end
-        chan_idx = any([chan_idx, chan_idx3],2);
+        [~, chan_idx1] = ecog_visualElectrodes(channels);
+        
+        %-- add HD grid channels (GA*,GB*,G*) which covered visual area (at least 10%)
+        gridHDthresh = 64;
+        visarearate = 0.1;
+        [~, chan_idx2] = ecog_HDgridElectrodes(channels,gridHDthresh,visarearate,chan_idx1);        
         
         %-- Exclude bad channel
         goodchan = contains(channels.status, 'good');
+        chan_idx = any([chan_idx1, chan_idx2],2);
         chan_idx = all([chan_idx,goodchan],2);
 
         fprintf('[%s] Step 2: Found %d channels with visual matches out of %d ecog channels \n', ...
