@@ -194,11 +194,11 @@ hF = gobjects(0);
 if issaveplot
 rois = {{'V1'},{'V2'},{'V3'},{'V1','V2','V3'},{'V3a','V3b','LO1','LO2','TO','IPS'}};
 roilabels = {'V1','V2','V3','V1-V3','Dorsolateral'};
-maxpow = 450;   maxlog = 5.5;
+maxpow = 450;   maxlog = 5.5;   minlog = 0.3;
 else
 rois = {{'V1','V2','V3'},{'V3a','V3b','LO1','LO2','TO','IPS'}};
 roilabels = {'V1-V3','Dorsolateral'};
-maxpow = 300;   maxlog = 4.2;
+maxpow = 300;   maxlog = 4.2;   minlog = 0.4;
 end
 
 nroi = length(rois);
@@ -286,8 +286,8 @@ datats(datats<=0) = nan; datats2(datats2<=0) = nan;
 
 meanfun = @(d) (geomean(d,'all','omitnan'));
 errfun  = @(d) (geosem(d,0,'all','omitnan'));
-errneg  = @(m,s) -exp(log(m)-log(s)) + m;
-errpos  = @(m,s) exp(log(m)+log(s)) - m;
+errneg  = @(m,s) -m./s + m;   % -exp(log(m)-log(s)) + m
+errpos  = @(m,s)  m.*s - m;   %  exp(log(m)+log(s)) - m
 
 nchn      = size(datats,2);
 prfinmat  = prfidxbb&~blankidx;
@@ -378,8 +378,8 @@ datats(datats<=0) = nan; datats2(datats2<=0) = nan;
 
 meanfun = @(d) (geomean(d,'all','omitnan'));
 errfun  = @(d) (geosem(d,0,'all','omitnan'));
-errneg  = @(m,s) -exp(log(m)-log(s)) + m;
-errpos  = @(m,s) exp(log(m)+log(s)) - m;
+errneg  = @(m,s) -m./s + m;   % -exp(log(m)-log(s)) + m
+errpos  = @(m,s)  m.*s - m;   %  exp(log(m)+log(s)) - m
 
 nchn      = size(datats,2);
 prfinmat  = prfidxbb&~blankidx;
@@ -459,23 +459,27 @@ end
 %% %%%%%%%%%%%%%%%%%%%%%%
 %% Show alpha in log axis
 %% %%%%%%%%%%%%%%%%%%%%%%
-ylin = [0 maxlog];
-yticklog = [log2([0.25 0.5])+1 1:maxlog];
+scalefun = @(d) log2(d)+1;      % log axis
+% scalefun = @(d) -(1./d)+2;      % reciprocal axis
+
+ylin = [scalefun(minlog) maxlog];
+yticklog = [scalefun([0.25 0.5]) 1:maxlog];
 ytickloglabel = [[0.25 0.5] 1:maxlog];
 
 %% Bar plot (low broadband VS broadband VS alpha) in pRF only <dual axis>
+if issaveplot
 datats = cat(2,model_all_bb.datats{:})'./100+1;
 datats2 = cat(2,model_all_bbl.datats{:})'./100+1;
-datats3 = exp(cat(2,model_all_a.datats{:})');
+datats3 = 10.^(cat(2,model_all_a.datats{:})');
 datats(datats<=0) = nan; datats2(datats2<=0) = nan;
 
 meanfun = @(d) (geomean(d,'all','omitnan'));
 errfun  = @(d) (geosem(d,0,'all','omitnan'));
-errneg  = @(m,s) -exp(log(m)-log(s)) + m;
-errpos  = @(m,s) exp(log(m)+log(s)) - m;
-revfun  = @(d) log2(1./d)+1;
-revneg  = @(m,s) -revfun(exp(log(m)+log(s))) + revfun(m);
-revpos  = @(m,s) revfun(exp(log(m)-log(s))) - revfun(m);
+errneg  = @(m,s) -m./s + m;   % -exp(log(m)-log(s)) + m
+errpos  = @(m,s)  m.*s - m;   %  exp(log(m)+log(s)) - m
+revfun  = @(d) scalefun(1./d);
+revneg  = @(m,s) -revfun(m.*s) + revfun(m);  % -revfun(exp(log(m)+log(s))) + revfun(m)
+revpos  = @(m,s)  revfun(m./s) - revfun(m);  %  revfun(exp(log(m)-log(s))) - revfun(m)
 
 nchn      = size(datats,2);
 prfinmat  = prfidxbb&~blankidx;
@@ -554,4 +558,102 @@ set(gcf,'Name','ECoG Log Power');
 
 figname = sprintf('Power-lowbb+logalpha-inPRF_%02d%%-%02d%%-ecc%02d_%s',threshold_bb,threshold_a,eclimit,useChans);
 if issaveplot,   savefigauto(gcf,fullfile(plotsavedir, figname));   end
+end
 
+%% %%%%%%%%%%%%%%%%%%%%%%
+%% Plot in log axis
+%% %%%%%%%%%%%%%%%%%%%%%%
+
+ylin = [minlog maxlog+0.6];
+yticklog = [[0.25 0.5] 2.^(0:log2(maxlog))];
+ytickloglabel = [[0.25 0.5] 2.^(0:log2(maxlog))];
+
+%% Bar plot (low broadband VS broadband VS alpha) in pRF only <dual axis>
+datats = cat(2,model_all_bb.datats{:})'./100+1;
+datats2 = cat(2,model_all_bbl.datats{:})'./100+1;
+datats3 = 10.^-(cat(2,model_all_a.datats{:})');
+datats(datats<=0) = nan; datats2(datats2<=0) = nan;
+
+meanfun = @(d) (geomean(d,'all','omitnan'));
+errfun  = @(d) (geosem(d,0,'all','omitnan'));
+errneg  = @(m,s) -m./s + m;   % -exp(log(m)-log(s)) + m
+errpos  = @(m,s)  m.*s - m;   %  exp(log(m)+log(s)) - m
+
+nchn      = size(datats,2);
+prfinmat  = prfidxbb&~blankidx;
+prfoutmat = ~prfidxbb&~blankidx;
+datatsIn  = nan(1,nchn);   datatsOut  = nan(1,nchn);
+datatsIn2  = nan(1,nchn);  datatsOut2  = nan(1,nchn);
+datatsIn3  = nan(1,nchn);  datatsOut3  = nan(1,nchn);
+for ich=1:size(datats,2)
+  if sum(prfinmat(:,ich))>0
+    datatsIn(ich) = meanfun(datats(prfinmat(:,ich),ich));
+    datatsIn2(ich) = meanfun(datats2(prfinmat(:,ich),ich));
+    datatsIn3(ich) = meanfun(datats3(prfinmat(:,ich),ich));
+  end
+  if sum(prfoutmat(:,ich))>0
+    datatsOut(ich) = meanfun(datats(prfoutmat(:,ich),ich));
+    datatsOut2(ich) = meanfun(datats2(prfoutmat(:,ich),ich));
+    datatsOut3(ich) = meanfun(datats3(prfoutmat(:,ich),ich));
+  end
+end
+
+hF(end+1) = figure; tiledlayout(1,1,'Padding','compact','TileSpacing','compact');
+set(gcf,'Position',get(gcf,'Position').*[2./(nroi+1) 1 0.3.*nroi 1]);
+inPRF_bb = []; E_inPRF_bb = []; inPRF_bb2 = []; E_inPRF_bb2 = []; inPRF_bb3 = []; E_inPRF_bb3 = [];
+for iroi = 1:length(rois)
+    roich = ismember(channels.wangarea,rois{iroi})';
+
+inPRF_bb  = [inPRF_bb, meanfun(datatsIn(roich&selch))];
+E_inPRF_bb   = [E_inPRF_bb, errfun(datatsIn(roich&selch))];
+
+inPRF_bb2  = [inPRF_bb2, meanfun(datatsIn2(roich&selch))];
+E_inPRF_bb2   = [E_inPRF_bb2, errfun(datatsIn2(roich&selch))];
+
+inPRF_bb3  = [inPRF_bb3, meanfun(datatsIn3(roich&selch))];
+E_inPRF_bb3   = [E_inPRF_bb3, errfun(datatsIn3(roich&selch))];
+end
+
+nexttile;
+B=bar([inPRF_bb;inPRF_bb2;inPRF_bb3]','BaseValue',1);
+
+hold on;
+errorbar(B(1).XEndPoints,[inPRF_bb],...
+            errneg([inPRF_bb],[E_inPRF_bb]),...
+            errpos([inPRF_bb],[E_inPRF_bb]),...
+    '.','LineStyle','none',...
+    'LineWidth',2.5,'CapSize',8,'Color','k');
+errorbar(B(2).XEndPoints,[inPRF_bb2],...
+            errneg([inPRF_bb2],[E_inPRF_bb2]),...
+            errpos([inPRF_bb2],[E_inPRF_bb2]),...
+    '.','LineStyle','none',...
+    'LineWidth',2.5,'CapSize',8,'Color','k');
+errorbar(B(3).XEndPoints,[inPRF_bb3],...
+            errneg([inPRF_bb3],[E_inPRF_bb3]),...
+            errpos([inPRF_bb3],[E_inPRF_bb3]),...
+    '.','LineStyle','none',...
+    'LineWidth',2.5,'CapSize',8,'Color','k');
+
+B(1).FaceColor = plcol(1,:);
+B(2).FaceColor = plcol(5,:);
+B(3).FaceColor = plcol(2,:);
+hold off;
+ylim(ylin);
+yticks(yticklog);
+yticklabels(arrayfun(@num2str, ytickloglabel, 'UniformOutput', false));
+    yticklabels(strrep(yticklabels,num2str(1/8),'1/8'));
+    yticklabels(strrep(yticklabels,num2str(1/4),'1/4'));
+    yticklabels(strrep(yticklabels,num2str(1/2),'1/2'));
+set(gca,'FontSize',FntSiz,'YScale','log');
+% set(gca,'FontSize',FntSiz);
+xticklabels(roilabels);
+% xticklabels({'In_{bb}','Out_{bb}','In_a','Out_a','Border'});
+% xticklabels({'In_{bb}','Border','Out_a'});
+% xticklabels({'Inside Broadband pRF','Outside Broadband pRF','Inside Alpja pRF','Outside Alpja pRF','Outside Broadband pRF & Inside Alpja pRF'});
+title('in pRF');
+
+legend({['Broadband' newline '(70–180 Hz)'],['Broadband' newline '(3–26 Hz)'],'Alpha'});
+set(gcf,'Name','ECoG Log Power');
+
+figname = sprintf('Power-loglowbb+logalpha-inPRF_%02d%%-%02d%%-ecc%02d_%s',threshold_bb,threshold_a,eclimit,useChans);
+if issaveplot,   savefigauto(gcf,fullfile(plotsavedir, figname));   end
