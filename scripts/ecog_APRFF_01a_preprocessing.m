@@ -30,7 +30,7 @@ SetDefault('skipexist',true);
 compute     = [];
 inputDir    = 'ECoGCAR';
 outputDir   = 'Raw';
-epochTime   = [-1.0 1.5];
+epochTime   = [-0.2 0.8];
 fsample     = 512;
 
 [data] = ecog_prf_getData(compute, subjectList, [], [], [], epochTime, fsample, inputDir, outputDir);
