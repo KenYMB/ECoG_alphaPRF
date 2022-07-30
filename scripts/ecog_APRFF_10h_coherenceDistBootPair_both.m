@@ -60,25 +60,7 @@ if selsbj > length(HDsubjectList),  subjectList = HDsubjectList;
 else,                               subjectList = HDsubjectList(selsbj);
 end
 
-%% load time series data
-clear alphaType broadbandType
-decN = 3;
-% decN = 1;
-
-average        ='runs';
-prfmodel       = 'linear';
-gaussianmode   = 'gs';
-smoothingMode  ='decimate';
-smoothingN     = decN;
-% selectchs      = 'wangprobchs';     % only use wangprobchs as seed but use all grid channels for averaged coherence
-selectchs      = 'GB*';             % use all grid channels
-    allowlag       = false;
-    allowbeta      = true;
-    allowwide      = true;
-    allowmixbeta   = true;
-    
-ecog_APRFF_INITa_loaddata;
-
+%% load coherence
 %%% Subject Name
 nsbj = length(subjectList);
 if nsbj==1
@@ -87,16 +69,22 @@ else
    subject = 'all';
 end
 
+%%% Coherence file
+filename = sprintf('cohdat-%s-%s-%s.mat',subject,useChans,disttype);
+filepath = fullfile(SetDefaultAnalysisPath('DAT',xspctrmPth),filename);
+assert(exist(filepath,'file'),'Need to run ecog_APRFF_03d_CoherenceAcrossDist in advance.');
+load(filepath);
+
 %%% Bootstrapping file
 filename = sprintf('cohboot-%s-%s-%s.mat',subject,useChans,disttype);
 filepath = fullfile(SetDefaultAnalysisPath('DAT',xspctrmPth),filename);
-assert(exist(filepath,'file'),'Need to run ecog_APRFF_03d_bootstrapCoherence in advance.');
+assert(exist(filepath,'file'),'Need to run ecog_APRFF_03e_bootstrapCoherence in advance.');
 load(filepath);
 
 %%% Fitting file
 filename = sprintf('cohboot-fit-%s-%s-%s.mat',subject,useChans,disttype);
 filepath = fullfile(SetDefaultAnalysisPath('DAT',xspctrmPth),filename);
-assert(exist(filepath,'file'),'Need to run ecog_APRFF_03f_fitCoherence in advance.');
+assert(exist(filepath,'file'),'Need to run ecog_APRFF_03g_fitCoherence in advance.');
 load(filepath);
 
 %%
@@ -173,7 +161,7 @@ ylim(ylinraw);
 yticks(ylintick);
 
    figureName = sprintf('CoherenceTS_%s-%s-%s-%s_Distance%s-ALL',subject,useChans,tarBAND,disttype,inPRFmode);
-   if decN>1, figureName = sprintf('%s-decimate%d',figureName,decN); end
+   if smoothingN>1, figureName = sprintf('%s-%s%d',figureName,smoothingMode,smoothingN); end
    set(gcf,'Name',figureName);
    if issaveplot,  savefigauto(gcf, fullfile(plotsavedir,figureName));  end
 
@@ -220,15 +208,15 @@ ylim(ylinraw);
 yticks(ylintick);
 
    figureName = sprintf('CoherenceTS_%s-%s-%s-%s_Distance2%s-ALL',subject,useChans,tarBAND,disttype,inPRFmode);
-   if decN>1, figureName = sprintf('%s-decimate%d',figureName,decN); end
+   if smoothingN>1, figureName = sprintf('%s-%s%d',figureName,smoothingMode,smoothingN); end
    set(gcf,'Name',figureName);
    if issaveplot,  savefigauto(gcf, fullfile(plotsavedir,figureName));  end
 end
 
 
 %% Difference of Coherence between pRF conditions
-if issaveplot
 %%% difference plot @ x=3
+if issaveplot
 irnd = 1;       % index of arounddist
 ylindiff  = [-1 1].*0.04./nsbj;
 
@@ -259,13 +247,13 @@ set(gca,'FontSize',FntSiz);
 title(sprintf('%s',chantitle));
 ylabel(sprintf('Different Coherence from BLANK'));
 AX = gca; AX.XAxis.FontSize=AX.XAxis.FontSize-2;
-legend(hb,{'Boradband','Alpha'},'Location','northwest');
+legend(hb,{'Broadband','Alpha'},'Location','northwest');
    
    figureName = sprintf('CoherenceTS_%s-%s-%s-%s_Dot%s-diff',subject,useChans,'both',disttype,'AB');
-   if decN>1, figureName = sprintf('%s-decimate%d',figureName,decN); end
+   if smoothingN>1, figureName = sprintf('%s-%s%d',figureName,smoothingMode,smoothingN); end
    set(gcf,'Name',figureName);
    if issaveplot,  savefigauto(gcf, fullfile(plotsavedir,figureName));  end
-
+end
 
 %%% difference plot @ x=3 (est)
 if issaveplot
@@ -299,10 +287,10 @@ set(gca,'FontSize',FntSiz);
 title(sprintf('%s',chantitle));
 ylabel(sprintf('Different Coherence from BLANK'));
 AX = gca; AX.XAxis.FontSize=AX.XAxis.FontSize-2;
-legend(hb,{'Boradband','Alpha'},'Location','northwest');
+legend(hb,{'Broadband','Alpha'},'Location','northwest');
    
    figureName = sprintf('CoherenceTS_%s-%s-%s-%s_Dot%s-diff',subject,useChans,'both',disttype,'AB');
-   if decN>1, figureName = sprintf('%s-decimate%d',figureName,decN); end
+   if smoothingN>1, figureName = sprintf('%s-%s%d',figureName,smoothingMode,smoothingN); end
    set(gcf,'Name',figureName);
    if issaveplot,  savefigauto(gcf, fullfile(plotsavedir,figureName));  end
 end
@@ -339,13 +327,53 @@ set(gca,'FontSize',FntSiz);
 title(sprintf('%s',chantitle));
 ylabel(sprintf('Different Coherence from BLANK'));
 AX = gca; AX.XAxis.FontSize=AX.XAxis.FontSize-2;
-legend(hb,{'Boradband','Alpha'},'Location','northwest');
+legend(hb,{'Broadband','Alpha'},'Location','northwest');
    
    figureName = sprintf('CoherenceTS_%s-%s-%s-%s_Dot%s-diff-est0',subject,useChans,'both',disttype,'AB');
-   if decN>1, figureName = sprintf('%s-decimate%d',figureName,decN); end
+   if smoothingN>1, figureName = sprintf('%s-%s%d',figureName,smoothingMode,smoothingN); end
    set(gcf,'Name',figureName);
    if issaveplot,  savefigauto(gcf, fullfile(plotsavedir,figureName));  end
 end
-end
 
+
+%%% difference distribution @ x=3 <Boxplot>
+irnd = 1;       % index of arounddist
+% ylindiff  = [-1 1].*0.04./nsbj;
+ylindiff  = [-1 1].*0.2;
+xdist     = [-1 1]*.23;
+
+hF(end+1) = figure('Menubar','none');
+set(gcf,'Position',get(gcf,'Position').*[1 1 0.75 1]);
+ys = [avgtsBBprf(:,irnd) - avgtsBBbsl(:,irnd), ...
+      avgtsBBout(:,irnd) - avgtsBBbsl(:,irnd)];
+    xs = xdist +1;
+boxplot(ys,'Position',xs,'Colors',plcol(1,:),'Width',0.3);
+ys = [avgtsAprf(:,irnd) - avgtsAbsl(:,irnd), ...
+      avgtsAout(:,irnd) - avgtsAbsl(:,irnd)];
+    xs = xdist +2;
+hold on;
+boxplot(ys,'Position',xs,'Colors',plcol(2,:),'Width',0.3);
+ylim(ylindiff); xlim([0.5 2.5]);
+xticks(unique(xdist + [1;2]));
+xticklabels([{'in pRF'},{'out pRF'},{'in pRF'},{'out pRF'}]);
+hb = get(gca,'Children');
+
+hold on; hl = plot(xlim,[0 0],'k:','LineWidth',1.2);  uistack(hl,'bottom');
+set(findobj(hb,'Type','Line'),'LineWidth',2.6);
+% set(hb,{'linew'},{2.6},{'MarkerSize'},{9},{'MarkerFaceColor'},{'auto'},{'CapSize'},{10});
+set(gca,'FontSize',FntSiz);
+title(sprintf('%s',chantitle));
+ylabel(sprintf('Different Coherence from BLANK'));
+AX = gca; AX.XAxis.FontSize=AX.XAxis.FontSize-2;
+% legend(hb,{'Broadband','Alpha'},'Location','northwest');
+hmd = findobj(hb,'Tag','Median');
+% legend(hmd(end:-2:1),{'Broadband','Alpha'},'Location','northwest');
+text(1,ylindiff(1)+0.08*diff(ylindiff),'Broadband','Color',plcol(1,:),'FontSize',FntSiz,'HorizontalAlignment','center');
+text(2,ylindiff(1)+0.08*diff(ylindiff),'Alpha','Color',plcol(2,:),'FontSize',FntSiz,'HorizontalAlignment','center');
+
+   figureName = sprintf('CoherenceTS_%s-%s-%s-%s_Box%s-diff',subject,useChans,'both',disttype,'AB');
+   if smoothingN>1, figureName = sprintf('%s-%s%d',figureName,smoothingMode,smoothingN); end
+   set(gcf,'Name',figureName);
+   if issaveplot,  savefigauto(gcf, fullfile(plotsavedir,figureName));  end
+   
 end

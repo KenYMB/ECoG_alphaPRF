@@ -4,11 +4,8 @@
 % 20210601 Yuasa - compute time series (test)
 % 20210831 Yuasa - for broadband
 
-%% %%%%%%%%%%%%%%%%%%%%
-%% test
-%% %%%%%%%%%%%%%%%%%%%%
 %%
- close all; clear all;
+close all; % clearvars;
 % if isempty(gcp('nocreate')),  parpool([1 40]); end
 % startupToolboxToolbox;
 

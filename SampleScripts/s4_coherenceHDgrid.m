@@ -17,14 +17,15 @@ subjectList_fname = 'subjectlist.tsv';
 ecog_APRFF_03a_connectivityanalysis;
 
 %% Compute error bar and fitting curve
-ecog_APRFF_03d_bootstrapCoherence;
-ecog_APRFF_03f_fitCoherence;
+ecog_APRFF_03d_CoherenceAcrossDist
+ecog_APRFF_03e_bootstrapCoherence;
+ecog_APRFF_03g_fitCoherence;
 
 %% Visualize
 ecog_APRFF_03cA_connectivityanalysisTS;    % plot coherence across distance for alpha
 ecog_APRFF_03cB_connectivityanalysisTS;    % plot coherence across distance for broadband
 
-ecog_APRFF_03e_plotbootstrapCoherence;
+ecog_APRFF_03f_plotbootstrapCoherence;
 
 %% Finish session
 if exist('gcp','file'), delete(gcp('nocreate'));  end

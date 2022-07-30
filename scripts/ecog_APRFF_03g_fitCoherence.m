@@ -2,11 +2,8 @@
 
 % 20220411 Yuasa
 
-%% %%%%%%%%%%%%%%%%%%%%
-%% test
-%% %%%%%%%%%%%%%%%%%%%%
 %%
- close all; clear all;
+close all; % clearvars;
 % if isempty(gcp('nocreate')),  parpool([1 40]); end
 % startupToolboxToolbox;
    
@@ -31,25 +28,7 @@ if selsbj > length(HDsubjectList),  subjectList = HDsubjectList;
 else,                               subjectList = HDsubjectList(selsbj);
 end
 
-%% load time series data
-clear alphaType broadbandType
-decN = 3;
-% decN = 1;
-
-average        ='runs';
-prfmodel       = 'linear';
-gaussianmode   = 'gs';
-smoothingMode  ='decimate';
-smoothingN     = decN;
-% selectchs      = 'wangprobchs';     % only use wangprobchs as seed but use all grid channels for averaged coherence
-selectchs      = 'GB*';             % use all grid channels
-    allowlag       = false;
-    allowbeta      = true;
-    allowwide      = true;
-    allowmixbeta   = true;
-    
-ecog_APRFF_INITa_loaddata;
-
+%% load coherence
 %%% Subject Name
 nsbj = length(subjectList);
 if nsbj==1
