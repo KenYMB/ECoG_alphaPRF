@@ -1,0 +1,10 @@
+participant_id	age	sex	site	hemi	hasHDgrid
+p01	30	f	UMCU	L	no
+p02	18	f	UMCU	R	no
+p05	31	f	NYU	R	no
+p06	19	f	NYU	L	no
+p07	41	f	NYU	L	no
+p08	47	f	NYU	R	no
+p09	25	m	NYU	LR	no
+p10	23	m	NYU	R	yes
+p11	19	f	NYU	L	yes
