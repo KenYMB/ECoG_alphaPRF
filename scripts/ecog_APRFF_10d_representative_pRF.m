@@ -206,8 +206,10 @@ figureTitle = sprintf('pRFplot-%s-%s_ts',prf_all_bb.channels.subject_name(el(ii)
 opt = [];
 opt.skipprojection = 'yes';
 opt.catchan        = 'yes';
-opt.whichelec =el(ii);
+opt.whichelec      = el(ii);
+opt.flipgain       = 'no';
 [modelts_bb, datts_bb] = reconPRFdog(prf_all_bb,model_all_bb,opt);
+opt.flipgain       = 'yes';
 [modelts_a, datts_a]   = reconPRFdog(prf_all_a,model_all_a,opt);
 
 %%% plot time series of model & data
