@@ -162,7 +162,11 @@ polyregressors = repmat({cell(1,numruns)},numvxs,1);
 for vxs = 1:numvxs
 iboot1=1;
 for pp=1:numruns
+  if isnan(maxpolydeg(pp))
+    polyregressors{vxs}{iboot1,pp} = zeros(ntime(vxs,pp),0);
+  else
     polyregressors{vxs}{iboot1,pp} = constructpolynomialmatrix(ntime(vxs,pp),0:maxpolydeg(pp));
+  end
 end
 temp = blkdiag(polyregressors{vxs}{iboot1,:});
 cnt = 0;

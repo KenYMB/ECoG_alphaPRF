@@ -37,7 +37,7 @@ else
 end
 
 %%% Coherence across distance file
-filename = sprintf('%sdat_%s-%s-%s',cohmethod,subject,useChans,disttype);
+filename = sprintf('%sdat_%s-%s-%s.mat',cohmethod,subject,useChans,disttype);
 filepath = fullfile(SetDefaultAnalysisPath('DAT',outputDir),filename);
 
 if exist(filepath,'file')

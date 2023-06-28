@@ -77,7 +77,7 @@ SetDefault('opts.allowwide',true);
 SetDefault('opts.allowmixbeta',true);
 SetDefault('opts.subjectname',[]);
 SetDefault('opts.cohfileid',[]);
-SetDefault('opts.doloadiaf',true);
+SetDefault('opts.doloadiaf',false);
 
 %% set up options
 

@@ -47,7 +47,7 @@ SetDefault('opts.allowbeta',true);
 SetDefault('opts.allowwide',true);
 SetDefault('opts.allowmixbeta',true);
 SetDefault('opts.cohfileid',[]);
-SetDefault('opts.doloadiaf',true);
+SetDefault('opts.doloadiaf',false);
 
 %% load time series data
 average        = opts.average;

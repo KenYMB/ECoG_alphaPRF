@@ -62,7 +62,7 @@ SetDefaultAnalysisPath('DATA','pRFmodel','opts.outputDir');
 SetDefault('opts.issave',false);
 % <options for analyzePRF>
 SetDefault('opts.hrf',1);
-SetDefault('opts.maxpolydeg',0);
+SetDefault('opts.maxpolydeg',0,true);
 SetDefault('opts.prfmodel','linear');       %'css','fixexpt','linear'
 SetDefault('opts.gaussianmode','gs');       %'dog','og','gs'
 SetDefault('opts.isdouble',true);
