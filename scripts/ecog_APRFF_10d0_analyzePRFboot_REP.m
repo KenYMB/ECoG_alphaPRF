@@ -16,7 +16,8 @@ if exist('gcp','file') && isempty(gcp('nocreate')), parpool([1 40]); isstartpar 
 %% Define paths and dataset
 checkPath;
 
-repelec = table({'Oc17','Oc18','GB102','GB103'}',{'p02','p02','p10','p10'}','VariableNames',{'name','subject_name'});
+% repelec = table({'Oc17','Oc18','GB102','GB103'}',{'p02','p02','p10','p10'}','VariableNames',{'name','subject_name'});
+repelec = table({'GB103'}',{'p10'}','VariableNames',{'name','subject_name'});
 
 %-- Subjects
 SetDefault('subjectList_fname','subjectlist.tsv');
