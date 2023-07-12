@@ -55,6 +55,7 @@ function odata = decimate_col(idata,r,nfilt,option,dim,nanflag)
 % 20200203 Yuasa: modified from DECIMATE to apply matrix
 % 20201214 Yuasa: ignore nan option
 % 20220629 Yuasa: avoid error if data includes nan columns
+% 20230711 Yuasa: fixed bug when it's called as DECIMATE_COL(X,R,'omitnan')
 
 narginchk(2,6);
 error(nargoutchk(0,1,nargout,'struct'));
@@ -92,9 +93,9 @@ if nargin == 2
 else
     if ischar(nfilt)
         if nargin == 3 && (strcmpi(nfilt,'includenan')||strcmpi(nfilt,'omitnan'))
+            omitnan = strcmpi(nfilt,'omitnan');
             nfilt = 8;
             dim  = 1;
-            omitnan = strcmpi(nfilt,'omitnan');
         else
             if nfilt(1) == 'f' || nfilt(1) == 'F'
                 fopt = 0;
@@ -115,7 +116,7 @@ else
             if nargin > 3 && ~isempty(option)
                 nfilt = option;
             else
-                nfilt = 8*fopt + 30*(1-fopt);
+                nfilt = 8*fopt + 30*(1-fopt);intrCh2
             end
         end
     else

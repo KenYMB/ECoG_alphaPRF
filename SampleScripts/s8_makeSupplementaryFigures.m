@@ -1,7 +1,8 @@
 %% s8_makeSupplementaryFigures
-% Reproducing supplementary figures from "Spatial Tuning of Alpha Oscillations in Human Visual Cortex"
+% Reproducing supplementary figures from "Precise Spatial Tuning of Visually Driven Alpha Oscillations in Human Visual Cortex"
 
 % 20220223 Yuasa
+% 20230712 Yuasa - update figure numbers
 
 %% Initialize
 run_checkPath;
@@ -28,6 +29,10 @@ makeFigureS6;
 makeFigureS7;
 %%
 makeFigureS8;
+%%
+% FigureS9 is the schematic.
+%%
+makeFigureS10;
 
 %% Finish session
 close all;

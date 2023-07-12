@@ -1,7 +1,8 @@
 %% s7_makeFigures
-% Reproducing figures from "Spatial Tuning of Alpha Oscillations in Human Visual Cortex"
+% Reproducing figures from "Precise Spatial Tuning of Visually Driven Alpha Oscillations in Human Visual Cortex"
 
 % 20220223 Yuasa
+% 20230712 Yuasa - update figure numbers
 
 %% Initialize
 run_checkPath;
@@ -29,9 +30,9 @@ makeFigure6;
 %%
 makeFigure7;
 %%
-makeFigure9;
+makeFigure8;
 %%
-makeFigure10;
+makeFigure9;
 
 %% Finish session
 close all;

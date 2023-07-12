@@ -75,7 +75,7 @@ ecog_APRFF_INITb_mergedata;
 catch exrep
 try
 % modeldataID  = 'freq_spectra-timeseries-boot';
-prfID        = 'prf-bootrrr';
+prfID        = 'prf-boot';
 usefulltsxR2 = false;
 ecog_APRFF_INITa_loaddata;
 ecog_APRFF_INITb_mergedata;
