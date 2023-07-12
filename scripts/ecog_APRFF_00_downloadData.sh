@@ -13,7 +13,7 @@ if [ $# -ne 0 ];
 then
     DATADIR=$1 
 else
-    DATADIR=$(cd "$(dirname $(readlink $0 || echo $0))/../../BIDS";pwd -P) 
+    DATADIR=$(cd "$(dirname $(readlink $0 || echo $0))/..";pwd -P)/BIDS 
 fi
 echo Dataset will be downloaded into ${DATADIR}
 mkdir -p ${DATADIR}
