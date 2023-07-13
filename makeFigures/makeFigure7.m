@@ -9,6 +9,7 @@ clear modeldataID prfID useChans;
 run_checkPath;
 plotsavePthP   = SetDefaultAnalysisPath('FIG','Publication');
 issaveplot     = false;
+iswideWin      = false;
 
 %% Figure
 figureIDs = strcat('Figure',strsplit(strrep(mfilename,'makeFigure',''),'_'));
@@ -17,8 +18,7 @@ figureID = figureIDs{1};
 plotsavedir    = fullfile(plotsavePthP, figureID);
 if ~exist(plotsavedir,'dir'), mkdir(plotsavedir); end
 
-%%% Individual location %%%
-iswideWin = false;
+%%% Coherence across distance %%%
 ecog_APRFF_10h_coherenceDistBootPair_both;       % save figure with different arrange
 
 savefigauto(hF(1),fullfile(plotsavedir,[figureID 'a']),'-vector');

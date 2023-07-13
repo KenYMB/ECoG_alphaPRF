@@ -1,4 +1,4 @@
-%% Spatial profiles with exogenous attention - individual
+%% coherence from HD grids across all frequnecy
 
 % 20230215 Yuasa
 
@@ -9,6 +9,7 @@ clear modeldataID prfID useChans;
 run_checkPath;
 plotsavePthP   = SetDefaultAnalysisPath('FIG','Publication');
 issaveplot     = false;
+iswideWin      = false;
 plotavg        = false;
 
 %% Figure
@@ -18,8 +19,7 @@ figureID = figureIDs{1};
 plotsavedir    = fullfile(plotsavePthP, figureID);
 if ~exist(plotsavedir,'dir'), mkdir(plotsavedir); end
 
-%%% Exogenous Attantion %%%
-iswideWin = false;
+%%% Coherence across frequency %%%
 ecog_APRFF_10h2_coherenceDist_AllFreq;
 
 figure(hF(1)); ylim([min(ylim) 0.24]);
