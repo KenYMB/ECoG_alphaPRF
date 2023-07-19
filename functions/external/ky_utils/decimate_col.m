@@ -56,6 +56,8 @@ function odata = decimate_col(idata,r,nfilt,option,dim,nanflag)
 % 20201214 Yuasa: ignore nan option
 % 20220629 Yuasa: avoid error if data includes nan columns
 % 20230711 Yuasa: fixed bug when it's called as DECIMATE_COL(X,R,'omitnan')
+% 20230719 Yuasa: enable to specify multiple dimensions 
+%                 (common decimation options for all dimensions are allowed)
 
 narginchk(2,6);
 error(nargoutchk(0,1,nargout,'struct'));
@@ -85,17 +87,16 @@ if fix(r) == 1
 end
 
 fopt = 1;
-empdim = true;
 omitnan = false;
 if nargin == 2
     nfilt = 8;
-    dim  = 1;
+    dim  = [];
 else
     if ischar(nfilt)
         if nargin == 3 && (strcmpi(nfilt,'includenan')||strcmpi(nfilt,'omitnan'))
             omitnan = strcmpi(nfilt,'omitnan');
             nfilt = 8;
-            dim  = 1;
+            dim  = [];
         else
             if nfilt(1) == 'f' || nfilt(1) == 'F'
                 fopt = 0;
@@ -108,26 +109,24 @@ else
                 assert(strcmpi(nanflag,'includenan')||strcmpi(nanflag,'omitnan'),'Invalid option. Option must be ''omitnan'' or ''includenan''.');
                 omitnan = strcmpi(nanflag,'omitnan');
             end
-            if nargin > 4 && ~isempty(dim)
-                empdim = false;
-            else
-                dim  = 1;
+            if nargin < 5
+                dim = [];
             end
-            if nargin > 3 && ~isempty(option)
+            if nargin > 3
                 nfilt = option;
-            else
-                nfilt = 8*fopt + 30*(1-fopt);intrCh2
             end
         end
     else
         if nargin > 3
             if ischar(option)
                 if nargin == 4 && (strcmpi(option,'includenan')||strcmpi(option,'omitnan'))
-                    dim  = 1;
+                    dim  = [];
                     omitnan = strcmpi(option,'omitnan');
-                    if isempty(nfilt)
-                        nfilt = 8*fopt + 30*(1-fopt);
+                elseif nargin <= 5 && strcmpi(option,'all')
+                    if nargin == 5
+                        omitnan = strcmpi(dim,'omitnan');
                     end
+                    dim = option;
                 else
                     if option(1) == 'f' || option(1) == 'F'
                         fopt = 0;
@@ -136,13 +135,8 @@ else
                     else
                         error(message('signal:decimate:InvalidEnum'))
                     end
-                    if nargin > 4 && ~isempty(dim)
-                        empdim = false;
-                    else
-                        dim  = 1;
-                    end
-                    if isempty(nfilt)
-                        nfilt = 8*fopt + 30*(1-fopt);
+                    if nargin < 5
+                        dim = [];
                     end
                 end
             else
@@ -163,31 +157,31 @@ else
                         end
                     end
                 end
-                if ~isempty(option)
-                    dim    = option;
-                    empdim = false;
-                else
-                    dim  = 1;
-                end
-                if isempty(nfilt)
-                    nfilt = 8*fopt + 30*(1-fopt);
-                end
+                dim    = option;
             end
         else
-            dim = 1;
-            if isempty(nfilt)
-                nfilt = 8*fopt + 30*(1-fopt);
-            end
+            dim = [];
         end
     end
+end
+if isempty(nfilt)
+    nfilt = 8*fopt + 30*(1-fopt);
+end
+empdim = isempty(dim);
+if empdim
+    if isrow(idata) 	% row data
+        dim = 2;
+    else
+        dim  = 1;
+    end
+elseif strcmpi(dim,'all')
+    dim  = 1:ndims(idata);
 end
 if fopt == 1 && nfilt > 13
     warning(message('signal:decimate:highorderIIRs'));
 end
 
-if isrow(idata) && empdim 	% row data
-    dim = 2;
-end
+if isscalar(dim)  % main process
 fulldim = max(ndims(idata),dim);
 if omitnan
     idata = fillmissing(idata,'pchip',dim);
@@ -242,6 +236,19 @@ else	% IIR filter
 end
 odata(:,nancol) = nan;
 odata = permute(reshape(odata,[size(odata,1),datsiz(2:end)]),[2:dim,1,(dim+1):fulldim]);
+
+else  % loop for dimenstions
+odata = idata;
+if fopt,    option  = 'IIR';
+else,       option  = 'FIR';
+end
+if omitnan, nanflag = 'omitnan';
+else,       nanflag = 'includenan';
+end
+for idim = reshape(dim,1,[])
+    odata = decimate_col(odata,r,nfilt,option,idim,nanflag);
+end
+end
 
 %--------------------------------------------------------------------------
 function H = filtmag_db(b,a,f)
