@@ -118,7 +118,7 @@ for elec = el'
 %-- get peak
 [~,peaks] = findpeaks(datats(elec,:),'MinPeakHeight',prctile(datats(elec,:),85),'MinPeakDistance',10,'NPeaks',6,'SortStr','descend');
 peaks = sort(peaks);
-    
+
 data_fits   = data_spctr(:,peaks(ipk),elec);
 data_base   = data_spctr_off(:,1,elec);
 
@@ -164,7 +164,7 @@ title('Power Spectra');
 xlabel('Frequency (Hz)');
 ylabel('Power (\muV^2/Hz)');
 
-figureName = sprintf('%s_%s_broadband-1st',channels.subject_name{elec},channels.name{elec});
+figureName = sprintf('%s_%s_broadband-%s',channels.subject_name{elec},channels.name{elec},int2ordinal(ipk));
 if issaveplot,  savefigauto(gcf, fullfile(plotsavedir, figureName));    end
 end
 
@@ -199,7 +199,7 @@ title('Power Spectra');
 xlabel('Frequency (Hz)');
 ylabel('Power (\muV^2/Hz)');
 
-figureName = sprintf('%s_%s_broadband_nopower-1st',channels.subject_name{elec},channels.name{elec});
+figureName = sprintf('%s_%s_broadband_nopower-%s',channels.subject_name{elec},channels.name{elec},int2ordinal(ipk));
 if issaveplot,  savefigauto(gcf, fullfile(plotsavedir, figureName));    end
 end
 
@@ -223,7 +223,7 @@ title('Power Spectra');
 xlabel('Frequency (Hz)');
 ylabel('Power (\muV^2/Hz)');
 
-figureName = sprintf('%s_%s_alpha-1st',channels.subject_name{elec},channels.name{elec});
+figureName = sprintf('%s_%s_alpha-%s',channels.subject_name{elec},channels.name{elec},int2ordinal(ipk));
 if issaveplot,  savefigauto(gcf, fullfile(plotsavedir, figureName));    end
 end
 
@@ -244,11 +244,11 @@ title('Power Spectra');
 xlabel('Frequency (Hz)');
 ylabel('Power (\muV^2/Hz)');
 
-figureName = sprintf('%s_%s_alpha-shift-1st',channels.subject_name{elec},channels.name{elec});
+figureName = sprintf('%s_%s_alpha-shift-%s',channels.subject_name{elec},channels.name{elec},int2ordinal(ipk));
 if issaveplot,  savefigauto(gcf, fullfile(plotsavedir, figureName));    end
 end
 
-%-- both
+%-- raw + shift
 if true
 hF(end+1) = figure('Position',[500 500 500 420]);
 h=semilogy(f,data_base,'LineWidth',4,'Color','k');
@@ -268,7 +268,7 @@ set(get(gca,'XAxis'),'Scale','log','TickValue',[min(xplshow) 10:10:max(xplshow)]
 yTicL = [string(yticks)'; string(yticklabels)]; yTicL([yticks>=1e3, yticks<1e3]) = [];
 xticklabels(string(xticks));    yticklabels(yTicL);
 
-figureName = sprintf('%s_%s_alpha-both-1st',channels.subject_name{elec},channels.name{elec});
+figureName = sprintf('%s_%s_alpha-both-%s',channels.subject_name{elec},channels.name{elec},int2ordinal(ipk));
 if issaveplot,  savefigauto(gcf, fullfile(plotsavedir, figureName));    end
 end
 
@@ -306,7 +306,7 @@ legend(h,{'STIMULUS / BLANK'},'Location','northwest');
 %%%%% log-log
 set(get(gca,'XAxis'),'Scale','log','TickValue',[min(xplshow) 10:10:max(xplshow)]);
 
-figureName = sprintf('%s_%s_alpha_diff-loglog-base-1st',channels.subject_name{elec},channels.name{elec});
+figureName = sprintf('%s_%s_alpha_diff-loglog-base-%s',channels.subject_name{elec},channels.name{elec},int2ordinal(ipk));
 if issaveplot,  savefigauto(gcf, fullfile(plotsavedir, figureName));    end
 end
 
@@ -345,7 +345,7 @@ legend(h,{'STIMULUS / BLANK'},'Location','northwest');
 %%%% log-log
 set(get(gca,'XAxis'),'Scale','log','TickValue',[min(xplshow) 10:10:max(xplshow)]);
 
-figureName = sprintf('%s_%s_alpha_model-loglog-base-1st',channels.subject_name{elec},channels.name{elec});
+figureName = sprintf('%s_%s_alpha_model-loglog-base-%s',channels.subject_name{elec},channels.name{elec},int2ordinal(ipk));
 if issaveplot,  savefigauto(gcf, fullfile(plotsavedir, figureName));    end
 end
 
@@ -371,7 +371,7 @@ title('Ratio of Power Spectra');
 xlabel('Frequency (Hz)');
 ylabel('Log Ratio');
 
-figureName = sprintf('%s_%s_alpha_modelcheck-1st',channels.subject_name{elec},channels.name{elec});
+figureName = sprintf('%s_%s_alpha_modelcheck-%s',channels.subject_name{elec},channels.name{elec},int2ordinal(ipk));
 if issaveplot,  savefigauto(gcf, fullfile(plotsavedir, figureName));    end
 end
 
@@ -397,10 +397,11 @@ title('Ratio of Power Spectra');
 xlabel('Frequency (Hz)');
 ylabel('Log Ratio');
 
-figureName = sprintf('%s_%s_alpha_modelcheck-beta-1st',channels.subject_name{elec},channels.name{elec});
+figureName = sprintf('%s_%s_alpha_modelcheck-beta-%s',channels.subject_name{elec},channels.name{elec},int2ordinal(ipk));
 if issaveplot,  savefigauto(gcf, fullfile(plotsavedir, figureName));    end
 end
 
+if issaveplot,  close(hF);  end
 end
 end
 

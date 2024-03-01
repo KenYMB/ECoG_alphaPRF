@@ -17,7 +17,8 @@ plotsavedir    = fullfile(plotsavePthP, figureID);
 if ~exist(plotsavedir,'dir'), mkdir(plotsavedir); end
 
 %%% Spectra %%%
-ecog_APRFF_10c_outputSpectrumPanel;
+% ecog_APRFF_10c_outputSpectrumPanel;
+ecog_APRFF_10c_outputSpectrumPanelError;
 
 savefigauto(hF,fullfile(plotsavedir,[figureID 'a']),'-vector');
 

@@ -2,6 +2,7 @@
 % for figure 2
 
 % 20220523 Yuasa - separate this part
+% 20231031 Yuasa - add error information
 
 %%
 % close all; clear all;
@@ -113,15 +114,9 @@ else
 %   el = [el find(ismember(channels.name,{'Oc19','Oc26','Oc27'}))'];
 %     el = [1:height(channels)];
     
-        %-- take average across repeats & change dims (chan x events x f -> f x averaged events x channels)
-        [data_spctr, events] = ecog_averageEvents(spectra,events,average,@geomean);
-        data_spctr      = permute(data_spctr,[3,2,1]);
-%         data_spctr_off  = permute(spectra_off,[3,2,1]);
-
-        %-- set new params
-        n_stims     = size(data_spctr,2);
-        n_params    = 11;
-        n_iter = 1;
+        %-- take average across repeats & change dims (chan x averaged events x f)
+        [data_spctr, events, ~, events_idx]  = ecog_averageEvents(spectra,events,average,@geomean);
+        data_spctr      = permute(data_spctr,[3,2,1]);        
         
         %-- Recording site
         if hasSbjInfo && istablefield(SbjInfo,'site')
@@ -138,8 +133,9 @@ else
             elec_sel = channels.name{elec};
             fprintf('Processing electrode %s for subject %s across %s \n', elec_sel, subject, average);
             
-            data_fits   = data_spctr(:,:,elec);
-%             data_base   = data_spctr_off(:,:,elec);
+            %-- pickup electrode (chan x events x f -> f x events x 1)
+            data_elec   = permute(data_spctr(elec,:,:),[3,2,1]);
+            spctr_elec  = permute(spectra(elec,:,:),[3,2,1]);
             
             %--  set parameters
             switch upper(RECsite)
@@ -169,9 +165,10 @@ else
             end
                 
             %-- fit alpha with PRF trials
-            taskIndex = ~ismember(events.trial_name,'BLANK');
-            data_fit  = geomean(data_fits(:,taskIndex),2,'omitnan'); % task
-            data_base = geomean(data_fits(:,~taskIndex),2,'omitnan'); % baseline
+            taskIndex = ismember(events.trial_name,'prf');
+            blnkIndex = ismember(events.trial_name,'BLANK');
+            data_fit  = data_elec(:,taskIndex); % task     (already averaged)
+            data_base = data_elec(:,blnkIndex); % baseline (already averaged)
             [bb_amp_low,alpha_amp,alpha_freq,alpha_width,fit_fd2,out_exp,beta_params] = ...
                 ecog_fitalpha(f,f_alpha4fit,[7 14; 8 13],data_base',data_fit',allownegfit,allowbetafit);
 
@@ -188,9 +185,19 @@ else
             pltdata(ee).iap    = alpha_amp;
             pltdata(ee).iaw    = alpha_width;
             pltdata(ee).beta   = beta_params;
+
+            %-- extra information
+            [pltdata(ee).fit_se(:,1),pltdata(ee).fit_se(:,2)] ...
+                               = geosem(spctr_elec(:,events_idx{taskIndex}),2,'omitnan');  % task
+            [pltdata(ee).base_se(:,1),pltdata(ee).base_se(:,2)] ...
+                               = geosem(spctr_elec(:,events_idx{blnkIndex}),2,'omitnan'); % baseline
+            pltdata(ee).fit_n  = sum(~isnan(spctr_elec(:,events_idx{taskIndex})),2);  % task
+            pltdata(ee).base_n = sum(~isnan(spctr_elec(:,events_idx{blnkIndex})),2); % baseline
             
             ee = ee + 1;
         end
+
+        channels = channels(el,:);
         
-  save(filename,'pltdata','el','f','f_alpha4fit','taskIndex','events','channels','subject')
+  save(filename,'pltdata','f','f_alpha4fit','events','channels','subject')
 end

@@ -18,7 +18,8 @@ plotsavedir    = fullfile(plotsavePthP, figureID);
 if ~exist(plotsavedir,'dir'), mkdir(plotsavedir); end
 
 %%% Spectra %%%
-ecog_APRFF_10e_representative_pRFspectrum;
+% ecog_APRFF_10e_representative_pRFspectrum;
+ecog_APRFF_10e_representative_pRFspectrumError;
 
 savefigauto(hF(1),fullfile(plotsavedir,[figureID 'a_broadband']),'-vector');
 savefigauto(hF(2),fullfile(plotsavedir,[figureID 'a_alpha']),'-vector');
