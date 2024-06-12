@@ -2,6 +2,7 @@
 % for figure 4
 
 % 20210301 Yuasa
+% 20231031 Yuasa - Add error shading
 
 %%
 % close all; clear all;
@@ -44,15 +45,6 @@ ipks = 1:6;    % pick up peak #
 else
 % repelec = {'name',{'Oc17','Oc17'},'subject_name',{'chaam','p02'}}; ipks = 5;
 repelec = {'name',{'GB103','GB103'},'subject_name',{'som726','p10'}}; ipks = 4;
-end
-if issaveplot
-% repelec = {'name',{'Oc18','GB103','Oc17','GB102'},...
-%             'subject_name',{'p02','p10','p02','p10'}};
-repelec = {'name',{'GB103'},'subject_name',{'p10'}};
-ipks = 1:6;    % pick up peak #
-else
-% repelec = {'name',{'Oc17'},'subject_name',{'p02'}}; ipks = 5;
-repelec = {'name',{'GB103'},'subject_name',{'p10'}}; ipks = 4;
 end
 
   average        = 'runs';

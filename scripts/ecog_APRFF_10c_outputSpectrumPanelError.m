@@ -5,6 +5,7 @@
 % 20210107 Yuasa - update from test_Output_Spectrum2
 % 20210507 Yuasa - 3 rows
 % 20231031 Yuasa - Add error shading
+% 20231010 Yuasa - update to plot error shade
 
 %%
 % close all; clear all;

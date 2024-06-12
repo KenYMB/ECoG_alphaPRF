@@ -20,7 +20,8 @@ mkdir -p ${DATADIR}
 
 # OpenNeuro
 ACCESSID=ds004194
-openneuro download $ACCESSID ${DATADIR}
+VERSION=1.0.1
+openneuro download -s $VERSION $ACCESSID ${DATADIR}
 
 # Download
 echo Complete
