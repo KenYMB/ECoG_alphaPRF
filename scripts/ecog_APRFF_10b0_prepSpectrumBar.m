@@ -28,7 +28,7 @@ if exist([filename '.mat'],'file')
 else
   %% load spectrum & fitting
   
-  subject   = intersect(subjectList,{'p02'});  subject = subject{1};
+  subject   = intersect(subjectList,{'chaam','p02'});  subject = subject{1};
   outputDir = SetDefaultAnalysisPath('DAT',spctrmPth);
   
   %-- spectrum
@@ -114,9 +114,8 @@ else
 %   el = [el find(ismember(channels.name,{'Oc19','Oc26','Oc27'}))'];
 %     el = [1:height(channels)];
     
-        %-- take average across repeats & change dims (chan x averaged events x f)
+        %-- take average across repeats (chan x averaged events x f)
         [data_spctr, events, ~, events_idx]  = ecog_averageEvents(spectra,events,average,@geomean);
-        data_spctr      = permute(data_spctr,[3,2,1]);        
         
         %-- Recording site
         if hasSbjInfo && istablefield(SbjInfo,'site')
@@ -133,7 +132,7 @@ else
             elec_sel = channels.name{elec};
             fprintf('Processing electrode %s for subject %s across %s \n', elec_sel, subject, average);
             
-            %-- pickup electrode (chan x events x f -> f x events x 1)
+            %-- pickup electrode & change dims (chan x events x f -> f x events x 1)
             data_elec   = permute(data_spctr(elec,:,:),[3,2,1]);
             spctr_elec  = permute(spectra(elec,:,:),[3,2,1]);
             
@@ -188,9 +187,9 @@ else
 
             %-- extra information
             [pltdata(ee).fit_se(:,1),pltdata(ee).fit_se(:,2)] ...
-                               = geosem(spctr_elec(:,events_idx{taskIndex}),2,'omitnan');  % task
+                               = geosem(spctr_elec(:,events_idx{taskIndex}),0,2,'omitnan');  % task
             [pltdata(ee).base_se(:,1),pltdata(ee).base_se(:,2)] ...
-                               = geosem(spctr_elec(:,events_idx{blnkIndex}),2,'omitnan'); % baseline
+                               = geosem(spctr_elec(:,events_idx{blnkIndex}),0,2,'omitnan'); % baseline
             pltdata(ee).fit_n  = sum(~isnan(spctr_elec(:,events_idx{taskIndex})),2);  % task
             pltdata(ee).base_n = sum(~isnan(spctr_elec(:,events_idx{blnkIndex})),2); % baseline
             
