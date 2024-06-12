@@ -6,6 +6,7 @@
 % 20210107 Yuasa - Update from 06d,06e
 % 20210809 Yuasa - modify for paper
 % 20210916 Yuasa - for APRFF
+% 20240529 Yuasa - add size comparison plot
 
 %% prefix
 % close all; clearvars;
@@ -232,4 +233,71 @@ figname = sprintf('prf-%02d%%-%02d%%-ecc%02d_line-roi_%s%s-largeFont',threshold_
 if domean,  figname = sprintf('%s-mean',figname);   end
 if issaveplot,  savefigauto(gcf,fullfile(plotsavedir, figname));    end
 
+end
+
+
+%% %%%%%%%%%%%%%%%%%%%%
+%% plot pRF size comparison
+%% %%%%%%%%%%%%%%%%%%%%
+%% Raw violin w/ confidence interval based on bootstrapping 
+if 1
+%-- Plot parameters
+iroi=12;
+rfsizeList = [prfs.rfsize_bb{iroi};prfs.rfsize_bbl{iroi};prfs.rfsize_a{iroi}].* cfactor;
+[rfsizeCount,rfsizeUnit] = groupcounts(rfsizeList');
+rfsizeUnit = [rfsizeUnit{:}]';
+rfsizeWeight = rfsizeCount./max(rfsizeCount).*2;
+
+%-- Plot violins of raw data
+hF(end+1) = figure; set(gcf,"Position",get(gcf,"Position").*[1 0.8 1 1.15]);
+colororder(getelement(colororder,[1,5,2],':'));
+hv= violinplot(rfsizeList',["Broadband\newline(70–180 Hz)","Broadband\newline(3–26 Hz)","Alpha"],...
+    'ShowData',false,'ShowMean',true,'ShowMedian',false,'QuartileStyle','shadow','Bandwidth',0.17);
+
+%-- Show broadband mean as a reference
+hold on;
+xlin = xlim;
+hl = plot(xlin,mean(rfsizeList(1,:)).*[1 1],'k--',LineWidth=1.0);
+uistack(hl,'bottom');
+hold off;
+
+%-- take average in each iteration
+prfs_avg = prfs;
+prf_flds = string(fieldnames(prfs))';
+prf_flds = prf_flds(contains(prf_flds,'rfsize'));
+prf_nums = [0,cumsum(prfs.num(iroi,:))]; % get index numbers of each iteration
+for ifld=prf_flds
+    if iscell(prfs.(ifld)) && isvector(prfs.(ifld)) && length(prfs.(ifld)) == length(rois)
+        prfs_avg.(ifld){iroi} = [];
+        for itr = 1:size(prfs.num,2)
+            selitr = (prf_nums(itr)+1):prf_nums(itr+1);
+            prfs_avg.(ifld){iroi}(itr) = mean(prfs.(ifld){iroi}(selitr),'omitnan'); 
+        end
+    end
+end
+rfsizeList = [prfs_avg.rfsize_bb{iroi};prfs_avg.rfsize_bbl{iroi};prfs_avg.rfsize_a{iroi}].* cfactor;
+
+%-- Update violin plot with bootstrapping data
+for ivl = 1:length(hv)
+    %--- Set mean line
+    hv(ivl).MeanPlot.LineWidth = 3.0;
+    hv(ivl).MeanPlot.Color     = [0 0 0];
+
+    %--- Set CI
+    cis  = quantile(rfsizeList(ivl,:), [alpha/2, 1-alpha/2]);
+    flat = median(hv(ivl).ViolinPlotQ.XData);
+    wdat = hv(ivl).ViolinPlot.XData;
+    ydat = hv(ivl).ViolinPlot.YData;
+    % wdat(ydat<cis(1)|ydat>cis(2)) = flat;
+    % hv(ivl).ViolinPlotQ.XData = wdat;
+    wdat(ydat<cis(1)|ydat>cis(2)) = [];
+    ydat(ydat<cis(1)|ydat>cis(2)) = [];
+    set(hv(ivl).ViolinPlotQ,'XData',wdat,'YData',ydat);
+end
+
+ylabel('Size (deg)');
+set(findall(gcf,'-property','FontSize'),'FontSize',22);
+
+figname = sprintf('prf-%02d%%-%02d%%-ecc%02d_COMPsize-violin',threshold_bb,threshold_a,eclimit);
+if issaveplot,   savefigauto(gcf,fullfile(plotsavedir, figname),'-vector');   end
 end

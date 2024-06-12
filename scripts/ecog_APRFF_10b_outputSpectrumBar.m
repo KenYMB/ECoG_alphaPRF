@@ -3,6 +3,7 @@
 
 % 20210119 Yuasa - update from ecog_APRF_10a_outputSpectrum
 % 20210430 Yuasa - same figure from bar stimuli
+% 20231010 Yuasa - update to plot error shade
 
 %%
 % close all; clear all;
@@ -43,7 +44,7 @@ f_alpha     = ismember(f,f_alpha4fit);
 if issaveplot
     pltel = 1:length(pltdata);
 else
-    pltel = find(ismember(channels.name(el),{'Oc17'}));
+    pltel = find(ismember(channels.name,{'Oc17'}));
 end
 hF = gobjects(0);
 for ee = pltel
@@ -54,6 +55,12 @@ for ee = pltel
         f           = pltdata(ee).f;
         elec_sel    = pltdata(ee).elec;
         bb_amp      = pltdata(ee).bb_amp;
+        if isfield(pltdata(ee),'fit_se')
+          se_l_fit  = pltdata(ee).fit_se(:,1);
+          se_u_fit  = pltdata(ee).fit_se(:,2);
+          se_l_base = pltdata(ee).base_se(:,1);
+          se_u_base = pltdata(ee).base_se(:,2);
+        end
         
 %% get amplitude at alpha
 [aa_base, f_detail] = resample(data_base(f_alpha),f_alpha4fit,50);
@@ -76,11 +83,12 @@ plotiaf = false;        % show IAF by dotted line
 plotarrow = false;      % show IAF by solid arrow 
 useord  = false;        % show IAF recomputed from plotting instead of which by gaussian fitting
 showbox = true;
-% showbox = false;
+showerr = true;
 
 %% plot in linear-log
 % close all
 
+if 1 % all
 if useord,  iaidx = iafidx_ord;
 else,       iaidx = iafidx;
 end
@@ -88,9 +96,18 @@ end
 hF(end+1) = figure('Position',[500 500 930 420]);
 %-- broadband
 subplot(1,2,1);
+if ~showerr
 h=semilogy(f,data_base,'LineWidth',4,'Color','k');
 hold on;
 h(2)=semilogy(f,data_fit,'LineWidth',4,'Color','#A06440');
+else
+h=errorshade([f,f],[data_base,data_fit],...
+      [se_l_base,se_l_fit],[se_u_base,se_u_fit],...
+      ["k","#A06440"],'LineWidth',4);
+h(2,:) = [];
+set(gca,'YScale','log');
+hold on;
+end
 if plotiaf, plot(f_detail([iaidx iaidx]),[aa_base(iaidx), aa_fit(iaidx)],'k:','LineWidth',2); end
 if plotarrow, plot_arrow(f_detail(iaidx),aa_base(iaidx),f_detail(iaidx), aa_fit(iaidx),'LineWidth',1.6,'absheadheight',abs(diff([aa_base(iaidx), aa_fit(iaidx)]))*0.2,'absheadwidth',1.0); end
 xlim([1 150])
@@ -106,9 +123,18 @@ ylabel('Power (\muV^2/Hz)');
 
 %-- alpha
 subplot(1,2,2);
+if ~showerr
 h=semilogy(f,data_base,'LineWidth',4,'Color','k');
 hold on;
 h(2)=semilogy(f,data_fit,'LineWidth',4,'Color','#A06440');
+else
+h=errorshade([f,f],[data_base,data_fit],...
+      [se_l_base,se_l_fit],[se_u_base,se_u_fit],...
+      ["k","#A06440"],'LineWidth',4);
+h(2,:) = [];
+set(gca,'YScale','log');
+hold on;
+end
 if plotiaf, plot(f_detail([iaidx iaidx]),[aa_base(iaidx), aa_fit(iaidx)],'k:','LineWidth',2); end
 if plotarrow, plot_arrow(f_detail(iaidx),aa_base(iaidx),f_detail(iaidx), aa_fit(iaidx),'LineWidth',1.6,'absheadheight',abs(diff([aa_base(iaidx), aa_fit(iaidx)]))*0.2,'absheadwidth',1.0); end
 xlim(alpha_lim)
@@ -131,8 +157,10 @@ if plotiaf,   figureName = sprintf('%s_iaf',figureName);
 elseif plotarrow,   figureName = sprintf('%s_arrow',figureName);
 elseif showbox,   figureName = sprintf('%s_box',figureName); end
 if useord&&(plotiaf||plotarrow),   figureName = sprintf('%s-ord',figureName); end
+if showerr,   figureName = sprintf('%s-error',figureName); end
 set(gcf,'Name',figureName);
 if issaveplot,  savefigauto(gcf, fullfile(plotsavedir, figureName));    end
+end
 
 %% plot in linear-linear
 % close all
@@ -186,8 +214,9 @@ if plotiaf,   figureName = sprintf('%s_iaf',figureName);
 elseif plotarrow,   figureName = sprintf('%s_arrow',figureName);
 elseif showbox,   figureName = sprintf('%s_box',figureName); end
 if useord&&(plotiaf||plotarrow),   figureName = sprintf('%s-ord',figureName); end
+if showerr,   figureName = sprintf('%s-error',figureName); end
 set(gcf,'Name',figureName);
-if issaveplot,  savefigauto(gcf, fullfile(plotsavedir, figureName));    end
+if issaveplot,  savefigauto(gcf, fullfile(plotsavedir, figureName),'-vector');    end
 end
 
 end
