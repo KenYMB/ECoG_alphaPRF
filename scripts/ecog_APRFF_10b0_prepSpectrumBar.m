@@ -28,7 +28,7 @@ if exist([filename '.mat'],'file')
 else
   %% load spectrum & fitting
   
-  subject   = intersect(subjectList,{'chaam','p02'});  subject = subject{1};
+  subject   = intersect(subjectList,{'p02'});  subject = subject{1};
   outputDir = SetDefaultAnalysisPath('DAT',spctrmPth);
   
   %-- spectrum

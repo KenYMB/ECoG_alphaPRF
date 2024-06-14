@@ -35,7 +35,7 @@ FontSize = 18;
 
 %% Load data
 
-  subjectList   = intersect(subjectList,{'chaam','p02'});  subject = subjectList{1};
+  subjectList   = intersect(subjectList,{'p02'});  subject = subjectList{1};
   outputDir = SetDefaultAnalysisPath('DAT',preprocPth);
   
   %-- raw  
