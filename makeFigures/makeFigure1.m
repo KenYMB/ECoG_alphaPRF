@@ -1,6 +1,7 @@
 %% representative PSD & electrode location
 
 % 20220223 Yuasa
+% 20231101 Yuasa - update
 
 %% Initialize
 close all;
@@ -16,10 +17,15 @@ figureID = figureIDs{1};
 plotsavedir    = fullfile(plotsavePthP, figureID);
 if ~exist(plotsavedir,'dir'), mkdir(plotsavedir); end
 
+%%% Evoked %%%
+ecog_APRFF_10b2_outputVoltageBar;
+
+savefigauto(hF,fullfile(plotsavedir,[figureID 'cd']),'-vector');
+
 %%% Spectra %%%
 ecog_APRFF_10b_outputSpectrumBar;
 
-savefigauto(hF,fullfile(plotsavedir,[figureID 'cd']),'-vector');
+savefigauto(hF,fullfile(plotsavedir,[figureID 'ef']),'-vector');
 
 %%% Surface %%%
 selsbj      = 2;

@@ -12,7 +12,6 @@ issaveplot     = false;
 
 %% Figure
 figureIDs = strcat('Figure',strsplit(strrep(mfilename,'makeFigure',''),'_'));
-figureIDs = strcat(figureIDs,["A","B"]);
 
 %%% Visual areas %%%
 ecog_APRFF_10l1_visualizeAreaGrid;

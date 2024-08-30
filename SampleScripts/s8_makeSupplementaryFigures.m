@@ -3,6 +3,7 @@
 
 % 20220223 Yuasa
 % 20230712 Yuasa - update figure numbers
+% 20240830 Yuasa - update figure numbers for revision
 
 %% Initialize
 run_checkPath;
@@ -16,23 +17,23 @@ clearvars;
 subjectList_fname = 'subjectlist.tsv';
 
 %%
-makeFigureS1;
+makeFigure1S1;
 %%
-makeFigureS2;
+makeFigure3S1;
 %%
-makeFigureS3_S4;
+% makeFigure4_4S1;      % This figure is produced in s7_makeFigures.
 %%
-makeFigureS5;
+makeFigure6S1;
 %%
-makeFigureS6;
+% makeFigure6_6S2;      % This figure is produced in s7_makeFigures.
 %%
-makeFigureS7;
+% makeFigure7_7S1;      % This figure is produced in s7_makeFigures.
 %%
-makeFigureS8;
+makeFigure8S1_8S2;
 %%
-% FigureS9 is the schematic.
+makeFigure8S3;
 %%
-makeFigureS10;
+makeFigure10S1;
 
 %% Finish session
 close all;

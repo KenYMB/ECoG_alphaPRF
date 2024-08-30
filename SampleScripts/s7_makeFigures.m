@@ -3,6 +3,7 @@
 
 % 20220223 Yuasa
 % 20230712 Yuasa - update figure numbers
+% 20240830 Yuasa - update figure numbers for revision
 
 %% Initialize
 run_checkPath;
@@ -22,17 +23,21 @@ makeFigure2;
 %%
 makeFigure3;
 %%
-makeFigure4;
+makeFigure4_4S1;
 %%
 makeFigure5;
 %%
-makeFigure6;
+makeFigure6_6S2;
 %%
-makeFigure7;
+makeFigure7_7S1;
 %%
 makeFigure8;
 %%
-makeFigure9;
+% Figure9 is not produced by MATLAB.
+%%
+makeFigure10;
+%%
+makeFigure11;
 
 %% Finish session
 close all;
