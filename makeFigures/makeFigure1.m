@@ -2,6 +2,7 @@
 
 % 20220223 Yuasa
 % 20231101 Yuasa - update
+% 20241119 Yuasa - update
 
 %% Initialize
 close all;
@@ -18,7 +19,8 @@ plotsavedir    = fullfile(plotsavePthP, figureID);
 if ~exist(plotsavedir,'dir'), mkdir(plotsavedir); end
 
 %%% Evoked %%%
-ecog_APRFF_10b2_outputVoltageBar;
+% ecog_APRFF_10b2_outputVoltageBar;         % Averaged trials
+ecog_APRFF_10b3_outputVoltageBarSingle;     % Single trial
 
 savefigauto(hF,fullfile(plotsavedir,[figureID 'cd']),'-vector');
 

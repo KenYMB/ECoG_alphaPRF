@@ -19,9 +19,17 @@ subjectList_fname = 'subjectlist.tsv';
 %%
 makeFigure1S1;
 %%
+makeFigure1S2;
+%%
 makeFigure3S1;
 %%
-% makeFigure4_4S1;      % This figure is produced in s7_makeFigures.
+% makeFigure4_4S1_4S2;  % This figure is produced in s7_makeFigures.
+                        % 4S2: Save in Figure4 directory.
+%%
+% makeFigure5_5S1;      % This figure is produced in s7_makeFigures.
+                        % 5S1: Save in Figure5 directory.
+%%
+makeFigure5S2;
 %%
 makeFigure6S1;
 %%

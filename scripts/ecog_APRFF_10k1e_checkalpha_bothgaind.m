@@ -2,6 +2,7 @@
 %   Folk from ecog_APRF_07b_checkmodel_fullts
  
 % 20210510 Yuasa
+% 20240528 Yuasa - add individual plots
  
 %% prefix
 % close all; clearvars;
@@ -96,7 +97,7 @@ prf_all(ii).bb    = prf_all_bb;
 threshold(ii).a   = threshold_a;
 threshold(ii).bb  = threshold_bb;
 
-%-- flip gain for alpha (convert suppression to power change)
+%-- flip gain for alpha (convert from ratio of suppression to power change)
 % model_all(ii).a.datats = cellfun(@(C)-C,model_all(ii).a.datats,'UniformOutput',false);
 prf_all(ii).a.gain     = -prf_all(ii).a.gain;
 prf_all(ii).a.params   = prf_all(ii).a.params.*[1,1,1,-1,1,1,1];
@@ -768,17 +769,17 @@ if doviolin(length(htIn))>0
         yticks(linspace(floor(min(ylim)),ceil(max(ylim)),5));
     end
     yticklabels(yticks+sign(yticks)+(yticks==0));
-    xticknames = yticklabels;
-    xticknames(yticks<0)  = cellfun(@(d) sprintf('1/%d',-str2double(d)),xticknames(yticks<0),'UniformOutput',false);
-    yticklabels(xticknames);
+    ticknames = yticklabels;
+    ticknames(yticks<0)  = cellfun(@(d) sprintf('1/%d',-str2double(d)),ticknames(yticks<0),'UniformOutput',false);
+    yticklabels(ticknames);
 else
     if length(xticks)<5
         xticks(linspace(floor(min(xlim)),ceil(max(xlim)),5));
     end
     xticklabels(xticks+sign(xticks)+(xticks==0));
-    xticknames = xticklabels;
-    xticknames(xticks<0)  = cellfun(@(d) sprintf('1/%d',-str2double(d)),xticknames(xticks<0),'UniformOutput',false);
-    xticklabels(xticknames);
+    ticknames = xticklabels;
+    ticknames(xticks<0)  = cellfun(@(d) sprintf('1/%d',-str2double(d)),ticknames(xticks<0),'UniformOutput',false);
+    xticklabels(ticknames);
 end
 uistack(hl,'bottom');
 
@@ -852,7 +853,7 @@ title(htIn(end),  'Eccentricity VS Size','FontSize',FntSiz*1.1,'FontWeight','bol
 
 figname =sprintf('Summary-%s_%s%s_%s_ROI-low',params,targetBAND,R2mode,selectchs);
 if ispltall,     figname = [figname '_withrejected'];   end
-if issaveplot,   savefigauto(gcf,fullfile(plotsavedir, figname));   end
+if issaveplot,   savefigauto(gcf,fullfile(plotsavedir, figname),'-vector');   end
 end
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -866,8 +867,11 @@ npanel = 1;
 colpanel = [5 5 6];
 nBins = 28;
 
-doviolin = [1 1];
+doviolin = [1 1];       % for R2, gain
 % doviolin = [-1 -1];
+
+showerror = true;       % for ecc vs size
+nboot     = 5000;       % if showerror
 
 colpanel(doviolin<0) = colpanel(doviolin<0) - 1;
 
@@ -1053,17 +1057,17 @@ if doviolin(length(htIn))
         yticks(linspace(floor(min(ylim)),ceil(max(ylim)),5));
     end
     yticklabels(yticks+sign(yticks)+(yticks==0));
-    xticknames = yticklabels;
-    xticknames(yticks<0)  = cellfun(@(d) sprintf('1/%d',-str2double(d)),xticknames(yticks<0),'UniformOutput',false);
-    yticklabels(xticknames);
+    ticknames = yticklabels;
+    ticknames(yticks<0)  = cellfun(@(d) sprintf('1/%d',-str2double(d)),ticknames(yticks<0),'UniformOutput',false);
+    yticklabels(ticknames);
 else
     if length(xticks)<5
         xticks(linspace(floor(min(xlim)),ceil(max(xlim)),5));
     end
     xticklabels(xticks+sign(xticks)+(xticks==0));
-    xticknames = xticklabels;
-    xticknames(xticks<0)  = cellfun(@(d) sprintf('1/%d',-str2double(d)),xticknames(xticks<0),'UniformOutput',false);
-    xticklabels(xticknames);
+    ticknames = xticklabels;
+    ticknames(xticks<0)  = cellfun(@(d) sprintf('1/%d',-str2double(d)),ticknames(xticks<0),'UniformOutput',false);
+    xticklabels(ticknames);
 end
 uistack(hl,'bottom');
 title(htIn(end), 'Response Gain','FontSize',FntSiz*1.1,'FontWeight','bold');
@@ -1075,6 +1079,336 @@ params=["rfsize","ecc"];
 %--- get data range
 roich  = ismember(prf_all(modelsets(1)).a.channels.wangarea,roilist);
 okch   = (okch1bb&okch2bb) & roich;
+if ~ispltall,    okch   = ((okch1a)|(okch2a)) & okch;    end
+
+datrange = [0 prctile([prf_all(modelsets(1)).a.(params(2))(okch);prf_all(modelsets(2)).a.(params(2))(okch)],98)*cfactor];
+datrange = [0 ceil(diff(datrange)/.98*1.05)];
+datrange = [datrange datrange.*[1 10/8.5]];    % in degree [Ecc, Size]
+
+htIn(end+1) = tiledlayout(ht,npanel,1,'Padding','tight','TileSpacing','compact');
+htIn(end).Layout.Tile=sum(colpanel(1:(length(htIn)-1)))+1;
+htIn(end).Layout.TileSpan=[1,colpanel(length(htIn))];
+nexttile(htIn(end));    hold on;
+hs = gobjects(0);
+for mdlidx=1:2
+    %--- plot scatter (for each gain)
+    for ii=1:2
+    scatterprop = {mkSiz,plshp_wang(ii),'LineWidth',2.0,'MarkerEdgeColor',plcol_wang(mdlidx,:)};
+    if ii==1,    gainch = (prf_all(modelsets(mdlidx)).a.gain <= 0);  scatterprop = [scatterprop, {'MarkerFaceColor',plcol_wang(mdlidx,:)}];
+    else,        gainch = (prf_all(modelsets(mdlidx)).a.gain > 0);
+    end
+    okch   = (okch1bb&okch2bb) & roich & gainch;
+    if ~ispltall,    okch   = ((okch1a)|(okch2a)) & okch;    end
+    dat1 = prf_all(modelsets(mdlidx)).a.(params(2))(okch).*cfactor;
+    dat2 = prf_all(modelsets(mdlidx)).a.(params(1))(okch).*cfactor;
+    hs(end+1) = scatter(dat1,dat2,scatterprop{:});
+    end
+    %-- fit line (Robust method)
+    %%-- collect data (ignore gains)
+    ii=1;
+    okch   = (okch1bb&okch2bb) & roich;
+    if ~ispltall,    okch   = ((okch1a)|(okch2a)) & okch;    end
+    nchan = sum(okch);
+    if nchan>3
+    lineprop = {'Color',plcol_wang(mdlidx,:),'LineWidth',2.0};
+    if ii==1, lineprop = [{'--'},lineprop];
+    else,     lineprop = [{':'},lineprop];
+    end
+    warnstat = warning; warning('off');
+    dat1 = prf_all(modelsets(mdlidx)).a.(params(2))(okch).*cfactor;
+    dat2 = prf_all(modelsets(mdlidx)).a.(params(1))(okch).*cfactor;
+    %%-- exclude outliers (exclude data which are out of more than 2 sigma on the major and minor axes)
+    C = cov(dat1,dat2);  sl = C(1,2)./C(1,1); 
+    rot2d = @(D,deg) D*[cos(deg),-sin(deg);sin(deg),cos(deg)];
+    rotD = rot2d([dat1,dat2],atan(sl));
+    dat1r = rotD(:,1); dat2r = rotD(:,2);
+    okelec = dat1r < mean(dat1r)+std(dat1r)*2 & dat2r < mean(dat2r)+std(dat2r)*2 &...
+             dat1r > mean(dat1r)-std(dat1r)*2 & dat2r > mean(dat2r)-std(dat2r)*2;
+    dat1(~okelec) = [];    dat2(~okelec) = [];
+    %%-- compute slope of the major axis
+    C = cov(dat1,dat2);
+    sl = C(1,2)./C(1,1); intc = median(dat2) - sl*median(dat1);
+    fitcoef = [intc;sl];
+        if showerror
+            fitcoefbooot = nan(2,nboot);
+            for iboot=1:nboot
+                okchboot = randsample(find(okch),sum(okch),true);
+                dat1 = prf_all(modelsets(mdlidx)).a.(params(2))(okchboot).*cfactor;
+                dat2 = prf_all(modelsets(mdlidx)).a.(params(1))(okchboot).*cfactor;
+                %%-- exclude outliers (exclude data which are out of more than 2 sigma on the major and minor axes)
+                C = cov(dat1,dat2);  sl = C(1,2)./C(1,1); 
+                rotD = rot2d([dat1,dat2],atan(sl));
+                dat1r = rotD(:,1); dat2r = rotD(:,2);
+                okelec = dat1r < mean(dat1r)+std(dat1r)*2 & dat2r < mean(dat2r)+std(dat2r)*2 &...
+                         dat1r > mean(dat1r)-std(dat1r)*2 & dat2r > mean(dat2r)-std(dat2r)*2;
+                dat1(~okelec) = [];    dat2(~okelec) = [];
+                %%-- compute slope of the major axis
+                C = cov(dat1,dat2);
+                sl = C(1,2)./C(1,1); intc = median(dat2) - sl*median(dat1);
+                fitcoefboot(:,iboot) = [intc;sl];
+            end
+        end
+    warning(warnstat);
+    datX = minmax([xlim, datrange(1:2)]); datX = min(datX):range(datX)/100:max(datX);
+    datY = fitcoef(1,:)'+datX.*fitcoef(2,:)'; 
+    hl = plot(datX,mean(datY,1,'omitnan'),lineprop{:});
+        if showerror
+            datYboot = fitcoefboot(1,:)'+datX.*fitcoefboot(2,:)'; 
+            patch([datX, fliplr(datX)], [quantile(datYboot,alpha/2,1), fliplr(quantile(datYboot,1-alpha/2,1))],...
+                plcol_wang(mdlidx,:), FaceAlpha=0.3, Edgecolor='none');
+        end
+    end
+    %-- set axis
+%     plot(xlim,[0 0],'k:',[0 0],ylim,'k:');  % axis
+    uistack(hl,'top');
+    axis(datrange);
+    set(gca,'FontSize',FntSiz);
+
+xlabel(gca,  'Eccentricity (deg)','FontSize',FntSiz*1.2,'VerticalAlignment','top');
+ylabel(gca,  'Size (deg)','FontSize',FntSiz*1.2);
+end
+% uistack(flip(hs),'top');
+% legend(hs(end-1:end),["Negative Gain","Positive Gain"],'AutoUpdate','off');
+legend(hs(1:2:end),modelNames,'AutoUpdate','off');
+title(htIn(end),  'pRF size','FontSize',FntSiz*1.1,'FontWeight','bold');
+
+
+figname =sprintf('Summary1R-%s_%s%s_%s_ROI-low',params,targetBAND,R2mode,selectchs);
+if ispltall,     figname = [figname '_withrejected'];   end
+if issaveplot,   savefigauto(gcf,fullfile(plotsavedir, figname),'-vector');   end
+end
+
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     Histogram (Violin) of R2 / Gain &
+%       Ecc vs Size with fitting <Individual Plots>
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if 1 % ~issaveplot
+npanel = 1;
+colpanel = [5 5 6];
+nBins = 28;
+
+doviolin = [1 1];
+% doviolin = [-1 -1];
+
+colpanel(doviolin<0) = colpanel(doviolin<0) - 1;
+
+plcol_wang = [ones(1,1)*plcol(2,:);...
+              ones(1,1)*plcol(4,:);];
+plshp_wang = [repmat('o',1,1) repmat('o',1,1)];
+
+for isbj=1:length(prf_all(1).bb.subjects)
+subject = prf_all(1).bb.subjects{isbj};
+          
+% hF(end+1) = figure('Menubar','none','Position',[200 200 400*length(colpanel)+200 400*npanel],'defaultAxesColorOrder',plcol_wang);
+hF(end+1) = figure('Menubar','none','Position',[200 200 round(400*sum(colpanel)./colpanel(end))+200 400*npanel],'defaultAxesColorOrder',plcol_wang);
+ht = tiledlayout(1,sum(colpanel),'Padding','compact','TileSpacing','loose');
+htIn = gobjects(0);
+roilist = {'V1','V2','V3'}';
+nmdl = 2;
+
+
+%%% R2 Histogram / Violin
+params = 'xval';
+switch params
+    case {'xval'},          ll = 100; ul = -100;    roundunit = 20;
+    case {'ecc','rfsize'},  ll = 0;   ul = 50;      roundunit = 5;
+    case {'peakresp'},      ll = 10;  ul = -10;     roundunit = 3;
+    otherwise,              ll = 1e3; ul = -1e3;    roundunit = 5;
+end
+    %--- get data range
+    rangethresh = 70;
+    roich  = ismember(prf_all(modelsets(2)).a.channels.wangarea,roilist);
+    sbjch  = ismember(prf_all(modelsets(2)).a.channels.subject_name,prf_all(modelsets(2)).a.subjects{isbj});
+    if ispltall,    okch   = (okch1bb&okch2bb) & roich & sbjch;
+    else,           okch   = ((okch1a&okch1bb)|(okch2a&okch2bb)) & roich & sbjch;
+    end
+    if ~any(okch), delete(hF(end)); continue;  end
+
+    if doviolin(length(htIn)+1)<0
+    errfunc = @(d)std(d,'omitnan')./sqrt(sum(~isnan(d)));
+    ll = min(mean(prf_all(modelsets(1)).a.(params)(okch),'omitnan') - errfunc(prf_all(modelsets(1)).a.(params)(okch)*1.05),...
+             mean(prf_all(modelsets(2)).a.(params)(okch),'omitnan') - errfunc(prf_all(modelsets(2)).a.(params)(okch)*1.05));
+    ul = max(mean(prf_all(modelsets(1)).a.(params)(okch),'omitnan') + errfunc(prf_all(modelsets(1)).a.(params)(okch)*1.05),...
+             mean(prf_all(modelsets(2)).a.(params)(okch),'omitnan') + errfunc(prf_all(modelsets(2)).a.(params)(okch)*1.05));
+    else
+    datrange = prctile([prf_all(modelsets(2)).a.(params)(okch);prf_all(modelsets(1)).a.(params)(okch)],50+[-0.5 0.5].*rangethresh);
+    datrange = fliplr(datrange) + diff(datrange)/rangethresh*100.*[-1 1];
+    ll = min(ll,min(datrange));
+    ul = max(ul,max(datrange));
+    end
+    ll = floor(ll/roundunit)*roundunit;
+    ul = ceil(ul/roundunit)*roundunit;
+    switch params
+        case {'xval'},          ll = max(-100,ll);    ul = min(100,ul);
+        case {'ecc','rfsize'},  ll = max(0,ll);       ul = min(60,ul);
+    end
+    if ll > ul, ll=0; ul=1; end
+
+htIn(end+1) = tiledlayout(ht,npanel,1,'Padding','tight','TileSpacing','compact');
+htIn(end).Layout.Tile=sum(colpanel(1:(length(htIn)-1)))+1;
+htIn(end).Layout.TileSpan=[1,colpanel(length(htIn))];
+nexttile(htIn(end));    hold on;
+    %--- set axis
+    hl = gobjects(0);
+    if doviolin(length(htIn)),       ylim([ll ul]); xlim([1 nmdl]+[-1 1]*0.6)
+    else,                            xlim([ll ul]);
+    end
+% for mdlidx=1:2
+    %--- plot histogram
+    if doviolin(length(htIn))>0
+        colororder(plcol_wang); 
+        violinplot([prf_all(modelsets(1)).a.(params)(okch),...
+                    prf_all(modelsets(2)).a.(params)(okch)]);
+    elseif doviolin(length(htIn))<0
+        colororder(gca,plcol_wang); 
+        imdl = 1; errorbar(imdl,...
+                 [mean(prf_all(modelsets(imdl)).a.(params)(okch),'omitnan')],...
+                 [errfunc(prf_all(modelsets(imdl)).a.(params)(okch))],...
+                            'vertical','o','LineStyle','none','LineWidth',2,...
+                            'CapSize',6,'MarkerFaceColor','auto','MarkerSize',8);
+        imdl = 2; errorbar(imdl,...
+                 [mean(prf_all(modelsets(imdl)).a.(params)(okch),'omitnan')],...
+                 [errfunc(prf_all(modelsets(imdl)).a.(params)(okch))],...
+                            'vertical','o','LineStyle','none','LineWidth',2,...
+                            'CapSize',6,'MarkerFaceColor','auto','MarkerSize',8);
+    else
+        colororder(gca,plcol_wang); 
+        histogram(prf_all(modelsets(mdlidx)).a.(params)(okch),'BinLimits',xlim,'NumBins',nBins);
+    end
+% end
+    set(gca,'FontSize',FntSiz);
+%     legend(modelNames2l,'AutoUpdate','off');
+if doviolin(length(htIn))
+%     xticks([]);
+    xticklabels(strtok(modelNamesSrt,'-'));
+    if prod(ylim)<0, hl(end+1)=plot(xlim,[0,0],'k--','LineWidth',2); end  % axis
+    ylabel(gca,  'Cross-validated R^2 (%)','FontSize',FntSiz*1.2,'VerticalAlignment','bottom');
+    ylim(ylim+[0 1].*range(ylim)./20);
+else
+    ylim(ylim+[0 0.2]);
+    if prod(xlim)<0, hl(end+1)=plot([0,0], ylim,'k-','LineWidth',4); end  % axis
+    xlabel(gca,  'Cross-validated R^2 (%)','FontSize',FntSiz*1.2,'VerticalAlignment','bottom');
+    ylabel(gca,  '# of electrodes','FontSize',FntSiz*1.2);
+end
+uistack(hl,'bottom');
+title(htIn(end),  'Variance Explained','FontSize',FntSiz*1.1,'FontWeight','bold');
+    
+
+
+%%% Gain Histogram / Violin
+params = 'peakresp';
+switch params
+    case {'xval'},          ll = 100; ul = -100;    roundunit = 20;
+    case {'ecc','rfsize'},  ll = 0;   ul = 50;      roundunit = 5;
+    case {'peakresp'},      ll = 10;  ul = -10;     roundunit = 3;
+                      if doviolin(length(htIn))<0,  roundunit = 2;  end
+    otherwise,              ll = 1e3; ul = -1e3;    roundunit = 5;
+end
+    %--- get data range
+    rangethresh = 95;
+    roich  = ismember(prf_all(modelsets(2)).a.channels.wangarea,roilist);
+    sbjch  = ismember(prf_all(modelsets(2)).a.channels.subject_name,prf_all(modelsets(2)).a.subjects{isbj});
+    if ispltall,    okch   = (okch1bb&okch2bb) & roich & sbjch;
+    else,           okch   = ((okch1a&okch1bb)|(okch2a&okch2bb)) & roich & sbjch;
+    end
+    if doviolin(length(htIn)+1)<0
+    errfunc = @(d)std(d,'omitnan')./sqrt(sum(~isnan(d)));
+    ll = min(mean(prf_all(modelsets(1)).a.(params)(okch),'omitnan') - errfunc(prf_all(modelsets(1)).a.(params)(okch)*1.05),...
+             mean(prf_all(modelsets(2)).a.(params)(okch),'omitnan') - errfunc(prf_all(modelsets(2)).a.(params)(okch)*1.05));
+    ul = max(mean(prf_all(modelsets(1)).a.(params)(okch),'omitnan') + errfunc(prf_all(modelsets(1)).a.(params)(okch)*1.05),...
+             mean(prf_all(modelsets(2)).a.(params)(okch),'omitnan') + errfunc(prf_all(modelsets(2)).a.(params)(okch)*1.05));
+    else
+    datrange = prctile([prf_all(modelsets(2)).a.(params)(okch);prf_all(modelsets(1)).a.(params)(okch)],50+[-0.5 0.5].*rangethresh);
+    datrange = fliplr(datrange) + diff(datrange)/rangethresh*100.*[-1 1];
+    ll = min(ll,min(datrange));
+    ul = max(ul,max(datrange));
+    end
+    ll = floor(ll/roundunit)*roundunit;
+    ul = ceil(ul/roundunit)*roundunit;
+    switch params
+        case {'xval'},          ll = max(-100,ll);    ul = min(100,ul);
+        case {'ecc','rfsize'},  ll = max(0,ll);       ul = min(60,ul);
+    end
+    if ll > ul, ll=0; ul=1; end
+
+htIn(end+1) = tiledlayout(ht,npanel,1,'Padding','tight','TileSpacing','compact');
+htIn(end).Layout.Tile=sum(colpanel(1:(length(htIn)-1)))+1;
+htIn(end).Layout.TileSpan=[1,colpanel(length(htIn))];
+nexttile(htIn(end));    hold on;
+    %--- set axis
+    hl = gobjects(0);
+    if doviolin(length(htIn)),       ylim([ll ul]); xlim([1 nmdl]+[-1 1]*0.6)
+    else,                            xlim([ll ul]);
+    end
+% for mdlidx=1:2
+    %--- plot histogram
+    if doviolin(length(htIn))>0
+        colororder(plcol_wang); 
+        violinplot([prf_all(modelsets(1)).a.(params)(okch),...
+                    prf_all(modelsets(2)).a.(params)(okch)]);
+    elseif doviolin(length(htIn))<0
+        colororder(gca,plcol_wang); 
+        imdl = 1; errorbar(imdl,...
+                 [mean(prf_all(modelsets(imdl)).a.(params)(okch),'omitnan')],...
+                 [errfunc(prf_all(modelsets(imdl)).a.(params)(okch))],...
+                            'vertical','o','LineStyle','none','LineWidth',2,...
+                            'CapSize',6,'MarkerFaceColor','auto','MarkerSize',8);
+        imdl = 2; errorbar(imdl,...
+                 [mean(prf_all(modelsets(imdl)).a.(params)(okch),'omitnan')],...
+                 [errfunc(prf_all(modelsets(imdl)).a.(params)(okch))],...
+                            'vertical','o','LineStyle','none','LineWidth',2,...
+                            'CapSize',6,'MarkerFaceColor','auto','MarkerSize',8);
+    else
+        colororder(gca,plcol_wang); 
+        histogram(prf_all(modelsets(mdlidx)).a.(params)(okch),'BinLimits',xlim,'NumBins',nBins);
+    end
+% end
+    set(gca,'FontSize',FntSiz);
+%     legend(modelNamesSrt,'AutoUpdate','off');
+if doviolin(length(htIn))
+%     xticks([]);
+    xticklabels(strtok(modelNamesSrt,'-'));
+    if prod(ylim)<0, hl(end+1)=plot(xlim,[0,0],'k--','LineWidth',2); end  % axis
+    ylabel(gca,  'Ratio of Response','FontSize',FntSiz*1.2,'VerticalAlignment','bottom');
+    ylim(ylim+[-1 1].*range(ylim)./20);
+else
+    ylim(ylim+[0 0.2]);
+    if prod(xlim)<0, hl(end+1)=plot([0,0], ylim,'k-','LineWidth',4); end  % axis
+    xlabel(gca,  'Ratio of Response','FontSize',FntSiz*1.2,'VerticalAlignment','bottom');
+    ylabel(gca,  '# of electrodes','FontSize',FntSiz*1.2);
+end
+%-- Update TickLabel
+if doviolin(length(htIn))
+    if length(yticks)<5
+        yticks(linspace(floor(min(ylim)),ceil(max(ylim)),5));
+    end
+    yticklabels(yticks+sign(yticks)+(yticks==0));
+    ticknames = yticklabels;
+    ticknames(yticks<0)  = cellfun(@(d) sprintf('1/%d',-str2double(d)),ticknames(yticks<0),'UniformOutput',false);
+    yticklabels(ticknames);
+else
+    if length(xticks)<5
+        xticks(linspace(floor(min(xlim)),ceil(max(xlim)),5));
+    end
+    xticklabels(xticks+sign(xticks)+(xticks==0));
+    ticknames = xticklabels;
+    ticknames(xticks<0)  = cellfun(@(d) sprintf('1/%d',-str2double(d)),ticknames(xticks<0),'UniformOutput',false);
+    xticklabels(ticknames);
+end
+uistack(hl,'bottom');
+title(htIn(end), 'Response Gain','FontSize',FntSiz*1.1,'FontWeight','bold');
+    
+
+%%% Ecc vs Size
+params=["rfsize","ecc"];
+
+%--- get data range
+roich  = ismember(prf_all(modelsets(1)).a.channels.wangarea,roilist);
+sbjch  = ismember(prf_all(modelsets(1)).a.channels.subject_name,prf_all(modelsets(1)).a.subjects{isbj});
+okch   = (okch1bb&okch2bb) & roich & sbjch;
 if ~ispltall,    okch   = ((okch1a)|(okch2a)) & okch;    end
 
 datrange = [0 prctile([prf_all(modelsets(1)).a.(params(2))(okch);prf_all(modelsets(2)).a.(params(2))(okch)],98)*cfactor];
@@ -1144,10 +1478,12 @@ legend(hs(1:2:end),modelNames,'AutoUpdate','off');
 title(htIn(end),  'pRF size','FontSize',FntSiz*1.1,'FontWeight','bold');
 
 
-figname =sprintf('Summary1R-%s_%s%s_%s_ROI-low',params,targetBAND,R2mode,selectchs);
+figname =sprintf('Summary1R-%s-%s_%s%s_%s_ROI-low',params,subject,targetBAND,R2mode,selectchs);
 if ispltall,     figname = [figname '_withrejected'];   end
-if issaveplot,   savefigauto(gcf,fullfile(plotsavedir, figname));   end
+if issaveplot,   savefigauto(gcf,fullfile(plotsavedir, figname),'-vector');   end
 end
+end
+
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -1257,3 +1593,4 @@ if ispltall,     figname = [figname '_withrejected'];   end
 if dobbthrsh,    figname = [figname '_bbthresholded'];   end
 if issaveplot,   savefigauto(gcf,fullfile(plotsavedir, figname));   end
 end
+

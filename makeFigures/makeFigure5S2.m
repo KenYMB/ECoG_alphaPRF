@@ -1,6 +1,6 @@
-%% OG vs DoG model
+%% pRF relations
 
-% 20220620 Yuasa
+% 20241121 Yuasa
 
 %% Initialize
 close all;
@@ -17,11 +17,6 @@ figureID = figureIDs{1};
 plotsavedir    = fullfile(plotsavePthP, figureID);
 if ~exist(plotsavedir,'dir'), mkdir(plotsavedir); end
 
-%%% Variance explained %%%
-ecog_APRFF_10j_checkmodel;
-
-%-- modify axis range
-axmin = -5;
-hF.Children.Children(end-1).XLim(1) = axmin;
-hF.Children.Children(end-1).YLim(1) = axmin;
-savefigauto(hF,fullfile(plotsavedir,[figureID]),'-vector');
+%%%% Variance explaind VS pRF size
+ecog_APRFF_10g1c_visualizePRFrelations_xval
+savefigauto(hF(1),fullfile(plotsavedir,[figureID]),'-vector');

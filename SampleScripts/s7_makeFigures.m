@@ -23,9 +23,9 @@ makeFigure2;
 %%
 makeFigure3;
 %%
-makeFigure4_4S1;
+makeFigure4_4S1_4S2;
 %%
-makeFigure5;
+makeFigure5_5S1;
 %%
 makeFigure6_6S2;
 %%

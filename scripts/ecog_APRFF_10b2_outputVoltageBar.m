@@ -1,5 +1,4 @@
 % Show spectrum shapes for large Visul Filed stimuli
-% for figure 2
 
 % 20210119 Yuasa - update from ecog_APRF_10a_outputSpectrum
 % 20210430 Yuasa - same figure from bar stimuli
@@ -35,7 +34,7 @@ FontSize = 18;
 
 %% Load data
 
-  subjectList   = intersect(subjectList,{'p02'});  subject = subjectList{1};
+  subjectList   = intersect(subjectList,{'chaam','p02'});  subject = subjectList{1};
   outputDir = SetDefaultAnalysisPath('DAT',preprocPth);
   
   %-- raw  

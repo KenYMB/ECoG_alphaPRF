@@ -3,6 +3,7 @@
 
 % 20210301 Yuasa
 % 20231031 Yuasa - Add error shading
+% 20241115 Yuasa - Add option for error
 
 %%
 % close all; clear all;
@@ -35,15 +36,17 @@ isbetawide  = ismember(alphaFitTypes(subjectList,'name'),'betawide');
 
 %-- Plotting Setting
 FntSiz = 24;
+SetDefault('isbooterror',0);    % if N>0, use bootstrapping for error with N iteration
 
 %% Representative channels
 if issaveplot
-repelec = {'name',{'Oc18','GB103','Oc17','GB102'},...
-            'subject_name',{'p02','p10','p02','p10'}};
-ipk = 1;    % pick up peak #
+% repelec = {'name',{'Oc18','GB103','Oc17','GB102','Oc18','GB103','Oc17','GB102'},...
+%             'subject_name',{'chaam','som726','chaam','som726','p02','p10','p02','p10'}};
+repelec = {'name',{'GB103','GB103'},'subject_name',{'som726','p10'}};
+ipks = 1:6;    % pick up peak #
 else
-% repelec = {'name',{'Oc17'},'subject_name',{'p02'}}; ipk = 5;
-repelec = {'name',{'GB103'},'subject_name',{'p10'}}; ipk = 4;
+% repelec = {'name',{'Oc17','Oc17'},'subject_name',{'chaam','p02'}}; ipks = 5;
+repelec = {'name',{'GB103','GB103'},'subject_name',{'som726','p10'}}; ipks = 4;
 end
 
   average        = 'runs';
@@ -133,8 +136,25 @@ epochs_fits = permute(spectra(elec,ipeaks,:),[3,2,1]);
 epochs_base = permute(spectra(elec,iblnks,:),[3,2,1]);
 data_fits   = geomean(epochs_fits,2,'omitnan');
 data_base   = geomean(epochs_base,2,'omitnan');
-[se_l_fits,se_u_fits]     = geosem(epochs_fits,0,2,'omitnan');
-[se_l_base,se_u_base]     = geosem(epochs_base,0,2,'omitnan');
+if isbooterror
+    boot_fits = zeros(length(f),isbooterror);
+    boot_base = zeros(length(f),isbooterror);
+    stimbaserat = round(sum(iblnks)/sum(ipeaks));
+    for iboot = 1:isbooterror
+        bootsmpl = randsample(1:sum(ipeaks),sum(ipeaks),true);
+        boot_fits(:,iboot) = geomean(epochs_fits(:,bootsmpl,:),2,'omitnan');
+        boot_base(:,iboot) = geomean(epochs_base(:,reshape((1:stimbaserat)+stimbaserat*(bootsmpl-1)',1,[]),:),2,'omitnan');
+    end
+    ci_alpha = 0.6827;
+    [se_fits]     = quantile(boot_fits,[0.5-ci_alpha/2, 0.5+ci_alpha/2],2);
+    [se_base]     = quantile(boot_base,[0.5-ci_alpha/2, 0.5+ci_alpha/2],2);
+    se_l_fits = data_fits-se_fits(:,1);   se_u_fits = se_fits(:,2)-data_fits; 
+    se_l_base = data_base-se_base(:,1);   se_u_base = se_base(:,2)-data_base; 
+else
+    [se_l_fits,se_u_fits]     = geosem(epochs_fits,0,2,'omitnan');
+    [se_l_base,se_u_base]     = geosem(epochs_base,0,2,'omitnan');
+end
+
 
 %--  exclude power-line
 if strcmpi(subjectSite{isbj},'NYU')    % NYU subjects: 60Hz line noise

@@ -14,7 +14,7 @@ issaveplot     = false;
 %% Figure
 figureIDs = strcat('Figure',strsplit(strrep(mfilename,'makeFigure',''),'_'));
 
-figureID = figureIDs{1};
+figureID = figureIDs{1};        % save all figures in the same directory
 plotsavedir    = fullfile(plotsavePthP, figureID);
 if ~exist(plotsavedir,'dir'), mkdir(plotsavedir); end
 

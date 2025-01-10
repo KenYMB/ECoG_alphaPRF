@@ -120,14 +120,14 @@ wangprob.wangprob_high = sum(wangprob{:,catidx},2);
 
 %-- select maximum-probability roi
 flds = string(fieldnames(prfs_mpm))';
-plroiset = {[1,2,3],[nroi-1 nroi]};        % V1–V3;low-high
+plroiset = {[1,2,3],[6:(nroi-2)],[nroi-1 nroi]};        % V1–V3;dorsolateral;low-high
 for plroi = plroiset
     plroi = plroi{:};
 for iroi = plroi
     [ichx,chidx] = unique(prfs_mpm.chanidx{iroi});
     chidx(wangprob{ichx,iroi} < max(wangprob{ichx,plroi},[],2)) = [];
     for ifld = flds
-    if iscell(prfs_mpm.(ifld)) && size(prfs_mpm.(ifld),1)==nroi
+    if iscell(prfs_mpm.(ifld)) && size(prfs_mpm.(ifld),1)==nroi && ~all(isnan(prfs_mpm.(ifld){iroi,1}))
     prfs_mpm.(ifld){iroi,1} = prfs_mpm.(ifld){iroi,1}(chidx);
     end
     end

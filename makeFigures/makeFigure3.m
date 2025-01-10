@@ -2,6 +2,7 @@
 
 % 20220223 Yuasa
 % 20231101 Yuasa - update
+% 20241119 Yuasa - update
 
 %% Initialize
 close all;
@@ -19,8 +20,9 @@ plotsavedir    = fullfile(plotsavePthP, figureID);
 if ~exist(plotsavedir,'dir'), mkdir(plotsavedir); end
 
 %%% Spectra %%%
-% ecog_APRFF_10e_representative_pRFspectrum;
-ecog_APRFF_10e_representative_pRFspectrumError;
+% ecog_APRFF_10e_representative_pRFspectrum;        % Without Error Shading
+isbooterror = 1000;     % bootstrapping iteration
+ecog_APRFF_10e_representative_pRFspectrumError;     % With Error Shading
 
 savefigauto(hF(1),fullfile(plotsavedir,[figureID 'a_broadband']),'-vector');
 savefigauto(hF(2),fullfile(plotsavedir,[figureID 'a_alpha']),'-vector');

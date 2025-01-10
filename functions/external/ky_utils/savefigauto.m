@@ -38,8 +38,8 @@ if ~iscell(formats)
 end
 
 %-- suppress warning of hgexport
-warnid = 'MATLAB:hgexport:StyleSheetNotSupportedInFutureRelease';
-warnst = warning('query',warnid);
+warnid = {'MATLAB:hgexport:StyleSheetNotSupportedInFutureRelease','MATLAB:hgexport:NotSupportedInFutureRelease'};
+warnst = cellfun(@(id) warning('off',id),warnid);
 
 %-- save
 try
