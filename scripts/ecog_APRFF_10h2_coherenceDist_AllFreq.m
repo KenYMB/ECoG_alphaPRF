@@ -2,6 +2,7 @@
 %   for all frequency range
 
 % 20230329 Yuasa
+% 20241223 Yuasa - merge required data to reduce loading time
 
 %% %%%%%%%%%%%%%%%%%%%%
 %% test
@@ -67,6 +68,14 @@ if iswideWin,   dattypeid = '-Wide';
 else,           dattypeid = '';
 end
 
+%%% load averaged coherence data
+filename = sprintf('%savg%s_%s-%s-%s%s.mat',cohmethod,dattypeid,subject,useChans,disttype,dattypeid);
+avgfilepath = fullfile(SetDefaultAnalysisPath('DAT',xspctrmPth),filename);
+
+if exist(avgfilepath,'file')
+load(avgfilepath,'f_coh','chancmb','chandist','coh_avg_blnk','coh_avg_stim','coh_avg_all','coh_avg_shfl');
+
+else
 %%% Coherence file
 opts = [];
 opts.outputDir      = 'xSpectrum';
@@ -155,6 +164,10 @@ coh_avg_blnk = cat(1,coh_avg_blnk{:});
 coh_avg_stim = cat(1,coh_avg_stim{:});
 coh_avg_all  = cat(1,coh_avg_all{:});
 coh_avg_shfl = cat(1,coh_avg_shfl{:});
+
+%%% save averaged data
+save(avgfilepath,'f_coh','chancmb','chandist','coh_avg_blnk','coh_avg_stim','coh_avg_all','coh_avg_shfl');
+end
 
 %% %%%%%%%%%%%%%
 %% Visualize

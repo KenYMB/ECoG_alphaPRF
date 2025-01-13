@@ -44,6 +44,10 @@ function violins = violinplot(data, cats, varargin)
 %                    Can be either a single scalar value or an array of
 %                    up to two cells containing scalar values.
 %                    Defaults to 0.3.
+%     'MarkerSize'   Size of the data points, if shown.
+%                    Defaults to 24
+% 'MedianMarkerSize' Size of the median indicator, if shown.
+%                    Defaults to 36
 %     'EdgeColor'    Color of the violin area outline.
 %                    Defaults to [0.5 0.5 0.5]
 %     'BoxColor'     Color of the box, whiskers, and the outlines of
@@ -132,7 +136,7 @@ if isa(data, 'dataset') || isstruct(data) || istable(data)
     
     for n=1:length(catnames)
         thisData = data.(catnames{n});
-        violins(n) = Violin(thisData, n, varargin{:});
+        violins(n) = Violin({thisData}, n, varargin{:});
     end
     set(gca, 'XTick', 1:length(catnames), 'XTickLabels', catnames);
     set(gca,'Box','on');
