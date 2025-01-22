@@ -1,4 +1,5 @@
-function odata = decimate_col(idata,r,nfilt,option,dim,nanflag)
+function odata = decimate_col(idata,r,varargin)
+
 %DECIMATE_COL Resample a data vector at a lower rate after lowpass filtering.
 %   For matrices or N-D arrays, decimate the elements along the first array
 %   dimension.
@@ -58,27 +59,12 @@ function odata = decimate_col(idata,r,nfilt,option,dim,nanflag)
 % 20230711 Yuasa: fixed bug when it's called as DECIMATE_COL(X,R,'omitnan')
 % 20230719 Yuasa: enable to specify multiple dimensions 
 %                 (common decimation options for all dimensions are allowed)
+% 20231108 Yuasa: simplify the code
 
 narginchk(2,6);
-error(nargoutchk(0,1,nargout,'struct'));
+nargoutchk(0,1);
 
-if nargin > 2
-    nfilt  = convertStringsToChars(nfilt);
-end
-
-if nargin > 3
-    option  = convertStringsToChars(option);
-end
-
-if nargin > 4
-    dim     = convertStringsToChars(dim);
-end
-
-if nargin > 5
-    nanflag = convertStringsToChars(nanflag);
-end
-
-% Validate required inputs 
+%-- Validate required inputs 
 validateinput(idata,r);
 
 if fix(r) == 1
@@ -86,83 +72,28 @@ if fix(r) == 1
     return
 end
 
-fopt = 1;
-omitnan = false;
-if nargin == 2
-    nfilt = 8;
-    dim  = [];
+varargin = cellfun(@convertStringsToChars,varargin,'UniformOutput',false);
+
+%--- Setup character options
+ischaropt = cellfun(@(v) ischar(v),varargin);
+charopts  = lower(varargin(ischaropt));
+omitnan   = ismember('omitnan',charopts);
+nfilt     = charopts(~ismember(charopts,{'omitnan','includenan'}));
+assert(length(nfilt)<=1, 'Invalid option. Nanflag must be ''omitnan'' or ''includenan''.');
+nfilt     = cell2mat(nfilt);
+if isempty(nfilt) || ( nfilt(1) == 'i' || nfilt(1) == 'I' )
+    fopt  = 1;
+elseif ( nfilt(1) == 'f' || nfilt(1) == 'F' )
+    fopt  = 0;
 else
-    if ischar(nfilt)
-        if nargin == 3 && (strcmpi(nfilt,'includenan')||strcmpi(nfilt,'omitnan'))
-            omitnan = strcmpi(nfilt,'omitnan');
-            nfilt = 8;
-            dim  = [];
-        else
-            if nfilt(1) == 'f' || nfilt(1) == 'F'
-                fopt = 0;
-            elseif nfilt(1) == 'i' || nfilt(1) == 'I'
-                fopt = 1;
-            else
-                error(message('signal:decimate:InvalidEnum'))
-            end
-            if nargin > 5
-                assert(strcmpi(nanflag,'includenan')||strcmpi(nanflag,'omitnan'),'Invalid option. Option must be ''omitnan'' or ''includenan''.');
-                omitnan = strcmpi(nanflag,'omitnan');
-            end
-            if nargin < 5
-                dim = [];
-            end
-            if nargin > 3
-                nfilt = option;
-            end
-        end
-    else
-        if nargin > 3
-            if ischar(option)
-                if nargin == 4 && (strcmpi(option,'includenan')||strcmpi(option,'omitnan'))
-                    dim  = [];
-                    omitnan = strcmpi(option,'omitnan');
-                elseif nargin <= 5 && strcmpi(option,'all')
-                    if nargin == 5
-                        omitnan = strcmpi(dim,'omitnan');
-                    end
-                    dim = option;
-                else
-                    if option(1) == 'f' || option(1) == 'F'
-                        fopt = 0;
-                    elseif option(1) == 'i' || option(1) == 'I'
-                        fopt = 1;
-                    else
-                        error(message('signal:decimate:InvalidEnum'))
-                    end
-                    if nargin < 5
-                        dim = [];
-                    end
-                end
-            else
-                if nargin > 4
-                    if nargin > 5
-                        assert(strcmpi(nanflag,'includenan')||strcmpi(nanflag,'omitnan'),'Invalid option. Option must be ''omitnan'' or ''includenan''.');
-                        omitnan = strcmpi(nanflag,'omitnan');
-                    end
-                    if nargin == 5 && (strcmpi(dim,'includenan')||strcmpi(dim,'omitnan'))
-                        omitnan = strcmpi(dim,'omitnan');
-                    else
-                        if dim(1) == 'f' || dim(1) == 'F'
-                            fopt = 0;
-                        elseif dim(1) == 'i' || dim(1) == 'I'
-                            fopt = 1;
-                        else
-                            error(message('signal:decimate:InvalidEnum'))
-                        end
-                    end
-                end
-                dim    = option;
-            end
-        else
-            dim = [];
-        end
-    end
+    error(message('signal:decimate:InvalidEnum'))
+end
+
+%--- Setup other options
+[nfilt,dim] = parseInputs(varargin{~ischaropt});
+if nargin > 2 && isempty(dim) && ischaropt(1)
+    dim   = nfilt;
+    nfilt = [];
 end
 if isempty(nfilt)
     nfilt = 8*fopt + 30*(1-fopt);
@@ -212,7 +143,7 @@ if fopt == 0	% FIR filter
     lod = length(list);
     nlen = nout - lod;
     nbeg = r - (nd - list(length(list)));
-        odata = [odata; itemp(nbeg:r:nbeg+nlen*r-1,:)];
+    odata = [odata; itemp(nbeg:r:nbeg+nlen*r-1,:)];
 else	% IIR filter
     rip = .05;	% passband ripple in dB
     [b,a] = cheby1(nfilt, rip, .8/r);
@@ -272,4 +203,11 @@ end
 if (abs(r-fix(r)) > eps) || (r <= 0)
     error(message('signal:decimate:invalidR', 'R'));
 end
+
+%--------------------------------------------------------------------------
+function varargout = parseInputs(varargin)
+narginchk(0,nargout);
+%-- passthrough inputs 
+varargout = cell(1,nargout);
+varargout(1:min(nargout,nargin)) = varargin(1:min(nargout,nargin));
 
