@@ -45,8 +45,8 @@ if issaveplot
 repelec = {'name',{'GB103'},'subject_name',{'p10'}};
 ipks = 1:6;    % pick up peak #
 else
-% repelec = {'name',{'Oc17'},'subject_name',{'p02'}}; ipk = 5;
-repelec = {'name',{'GB103'},'subject_name',{'p10'}}; ipk = 4;
+% repelec = {'name',{'Oc17'},'subject_name',{'p02'}}; ipks = 5;
+repelec = {'name',{'GB103'},'subject_name',{'p10'}}; ipks = 4;
 end
 
   average        = 'runs';

@@ -41,6 +41,7 @@ function    [cohdatBBall,cohdatBBbsl,cohdatBBprf,cohdatBBout,...
 % 20220715 Yuasa
 % 20221102 Yuasa - enable to compute across precomputed electrode distances
 % 20230308 Yuasa - update for low-broadband
+% 20240111 Yuasa - update for precise options
 
 %%
 narginchk(2,inf);
@@ -72,9 +73,11 @@ SetDefault('opts.distmax',[]);
 SetDefault('opts.arounddist','all');
 % <hidden opts>
 SetDefault('opts.allowlag',false);
-SetDefault('opts.allowbeta',true);
-SetDefault('opts.allowwide',true);
-SetDefault('opts.allowmixbeta',true);
+SetDefault('opts.allowbetafit',true);
+SetDefault('opts.allowwidefit',true);
+SetDefault('opts.gammafit',false);
+SetDefault('opts.estimateIAF',true);
+SetDefault('opts.allownegfit',true);
 SetDefault('opts.subjectname',[]);
 SetDefault('opts.cohfileid',[]);
 SetDefault('opts.doloadiaf',false);

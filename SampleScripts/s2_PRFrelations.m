@@ -3,6 +3,7 @@
 % Visualize relations of broadband and alpha pRFs
 
 % 20220518 Yuasa
+% 20241223 Yuasa - updates for new figures
 
 %% Initialize
 run_checkPath;
@@ -25,6 +26,7 @@ ecog_APRFF_02b_computePRFparamsFPM_bootall    % compute bootstrap
 
 %% Compute selected channels
 ecog_APRFF_02e_selectedchannels
+ecog_APRFF_02e2_selectedchannels_ind
 
 %% visualize relations
 % ecog_APRFF_02c_visualizePRFrelations

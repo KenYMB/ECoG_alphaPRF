@@ -24,6 +24,7 @@ function    [coh_bbAll,coh_aAll,prfidxbb,prfidxa,blankidx,...
 
 % 20221110 Yuasa - segregate from ecog_prf_coherencedist
 % 20230308 Yuasa - update for low-broadband
+% 20240111 Yuasa - update for precise options
 
 %%
 narginchk(2,inf);
@@ -43,9 +44,11 @@ SetDefault('opts.smoothingN',3);
 SetDefault('opts.method','mscoh');
 % <hidden opts>
 SetDefault('opts.allowlag',false);
-SetDefault('opts.allowbeta',true);
-SetDefault('opts.allowwide',true);
-SetDefault('opts.allowmixbeta',true);
+SetDefault('opts.allowbetafit',true);
+SetDefault('opts.allowwidefit',true);
+SetDefault('opts.gammafit',false);
+SetDefault('opts.estimateIAF',true);
+SetDefault('opts.allownegfit',true);
 SetDefault('opts.cohfileid',[]);
 SetDefault('opts.doloadiaf',false);
 
@@ -58,9 +61,11 @@ smoothingN     = opts.smoothingN;
 selectchs      = 'GB*';             % use all grid channels
 % selectchs      = 'wangprobchs';     % only use wangprobchs as seed but use all grid channels for averaged coherence
     allowlag       = opts.allowlag;
-    allowbeta      = opts.allowbeta;
-    allowwide      = opts.allowwide;
-    allowmixbeta   = opts.allowmixbeta;
+    allowbeta      = opts.allowbetafit;
+    allowwide      = opts.allowwidefit;
+    gammafit       = opts.gammafit;
+    isestimateIAF  = opts.estimateIAF;
+    allownegfit    = opts.allownegfit;
     
 ecog_APRFF_INITa_loaddata;
 
@@ -95,8 +100,14 @@ coh_bbAll   = ecog_prf_loadconnectivity(subjectList, opt);
 
 %% load iaf
 opt = [];
-opt.average    = average;
-opt.compute         = false;
+opt.average      = average;
+opt.compute      = false;
+opt.allowlag     = allowlag;
+opt.allowbetafit = allowbeta;
+opt.allowwidefit = allowwide;
+opt.gammafit     = gammafit;
+opt.estimateIAF  = isestimateIAF;
+opt.allownegfit  = allownegfit;
 spcrm_params = ecog_prf_fitalpha(subjectList, opt);
 
 %% rearrange events 

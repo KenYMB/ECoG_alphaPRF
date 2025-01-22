@@ -2,6 +2,7 @@
 % Fitting supplementary pRF models on ECoG timecourse
 
 % 20220223 Yuasa
+% 20241223 Yuasa - updates for new figures
 
 %% Initialize
 run_checkPath;
@@ -40,6 +41,11 @@ clear smoothingMode smoothingN
 prfmodelList = {'linear'};
 gaussianList = {'og'};
 ecog_APRFF_01bb_analyzePRF_allprf
+
+%% pRF analysis without ERP removal
+clear smoothingMode smoothingN
+ecog_APRFF_01a_preprocessing_noregress
+ecog_APRFF_01b_analyzePRF_noregress
 
 %% Finish session
 if exist('gcp','file'), delete(gcp('nocreate'));  end
