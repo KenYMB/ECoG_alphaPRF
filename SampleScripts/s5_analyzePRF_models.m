@@ -44,6 +44,8 @@ ecog_APRFF_01bb_analyzePRF_allprf
 
 %% pRF analysis without ERP removal
 clear smoothingMode smoothingN
+prfmodel        = 'linear';
+gaussianmode    = 'gs';
 ecog_APRFF_01a_preprocessing_noregress
 ecog_APRFF_01b_analyzePRF_noregress
 
