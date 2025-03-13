@@ -65,7 +65,7 @@ Note: If no working directory is specified through any of these methods, the too
 
 The BIDS-formatted dataset is available on OpenNeuro: [Visual ECoG dataset](https://openneuro.org/datasets/ds004194)
 
-To automatically download the data (not available on Windows):
+To automatically download the data (only available if 'openneuro' is already installed on Mac/Linux; new installations are no longer supported).:
 ```matlab
 s0_downloadData
 ```
